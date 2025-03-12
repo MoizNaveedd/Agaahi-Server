@@ -1,0 +1,68 @@
+import { PaymentType } from "../enums/payment-type.enum";
+
+export const PaymentMethods = [
+  {
+    en_name: "Cash",
+    ar_name: "نقداً",
+    type: PaymentType.Cash,
+    serviceFee: 1,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735556714049_blob",
+    is_active: true,
+  },
+  {
+    en_name: "Tabby",
+    ar_name: "تابي",
+    type: PaymentType.Other,
+    serviceFee: 0,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735556749589_blob",
+    is_active: false,
+  },
+  {
+    en_name: "Master Card",
+    ar_name: "ماستر كارد",
+    type: PaymentType.Card,
+    serviceFee: 0,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735556784507_blob",
+    is_active: false,
+  },
+  {
+    en_name: "Visa",
+    ar_name: "فيزا",
+    type: PaymentType.Card,
+    serviceFee: 0,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735556898293_blob",
+    is_active: false,
+  },
+  {
+    en_name: "Mada",
+    ar_name: "مدى",
+    type: PaymentType.Card,
+    serviceFee: 0,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735557887608_blob",
+    is_active: false,
+  },
+  {
+    en_name: "Tamara",
+    ar_name: "تمارا",
+    type: PaymentType.Other,
+    serviceFee: 0,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735557089329_blob",
+    is_active: false,
+  },
+  {
+    en_name: "Apple Pay",
+    ar_name: "أبل باي",
+    type: PaymentType.Other,
+    serviceFee: 0,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735557641790_blob",
+    is_active: false,
+  },
+  {
+    en_name: "Debit Card",
+    ar_name: "بطاقة الخصم",
+    type: PaymentType.Card,
+    serviceFee: 0,
+    icon: "https://dev-iomechs-snad-docs.s3.us-east-1.amazonaws.com/snad/payment_type/1735558769816_blob",
+    is_active: false,
+  },
+];
