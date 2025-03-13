@@ -19,4 +19,6 @@ export const postgresConfig: TypeOrmModuleOptions = {
     path.join(__dirname, '..', '..', '/shared/database/migration/*.js'),
   ],
   migrationsRun: false,
-};
+  ssl: {
+    rejectUnauthorized: false, // Disables certificate validation
+  },};
