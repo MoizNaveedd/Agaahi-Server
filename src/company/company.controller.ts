@@ -1,4 +1,11 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 
 @Controller('company')
-export class CompanyController {}
+export class CompanyController {
+
+      @Get()
+      getHello(): string {
+        return "hi"
+        // return this.appService.getHello();
+      }
+}
