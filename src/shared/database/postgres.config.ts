@@ -13,7 +13,7 @@ export const postgresConfig: TypeOrmModuleOptions = {
   password: process.env['DB_POSTGRES_PASS'],
   entities: [path.join(__dirname, '..', '..', '/**/entity/*.entity.js')],
   synchronize: false,
-  logging: ['error', 'schema'],
+  logging: ['error', 'schema','query'],
   retryAttempts: 1,
   migrations: [
     path.join(__dirname, '..', '..', '/shared/database/migration/*.js'),

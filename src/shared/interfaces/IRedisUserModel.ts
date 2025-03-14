@@ -1,6 +1,5 @@
 export interface IRedisUserModel {
   employee_id: number;
-  company_role_id: number;
   role_id: number;
   company_id: number;
   language: string;
