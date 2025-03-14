@@ -6,7 +6,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const port = process.env.PORT || 3000;
-  InitializeSwagger(app)
+  InitializeSwagger(app);
+  app.enableCors();
   await app.listen(port);
   console.log(`Agaahi Server is listening on ${port}`);
 }
