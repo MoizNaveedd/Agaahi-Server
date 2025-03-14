@@ -3,8 +3,9 @@ import { Controller, Get } from '@nestjs/common';
 @Controller('company')
 export class CompanyController {
 
-    @Get()
-    async getHello (){
+      @Get()
+      getHello(): string {
         return "hi"
-    }
+        // return this.appService.getHello();
+      }
 }
