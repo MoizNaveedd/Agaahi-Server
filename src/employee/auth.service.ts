@@ -14,8 +14,6 @@ import {
   ValidateEmailDto,
 } from './ims/dto/employee.dto';
 import { EmployeeRepository } from './repository/employee.repository';
-import * as qrcode from 'qrcode';
-import * as speakeasy from 'speakeasy';
 import { EmployeeModel } from './entity/employee.entity';
 import { ErrorMessageConstant } from 'src/shared/constants/ErrorMessageConstant';
 import { Language } from 'src/shared/enums/language.enum';
