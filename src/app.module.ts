@@ -3,6 +3,7 @@ import { CompanyModule } from './company/company.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig } from './shared/database/postgres.config';
 import { ConfigModule } from '@nestjs/config';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -10,7 +11,8 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CompanyModule
+    CompanyModule,
+    ChatbotModule
   ],
   controllers: [],
   providers: [],

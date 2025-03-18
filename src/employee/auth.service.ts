@@ -32,7 +32,10 @@ import { ConfigService } from '@nestjs/config';
 // import { MailService } from 'src/shared/providers/mail.service';
 import Role from 'src/shared/enums/role-ims.enum';
 // import { GetAWSSignedUrl } from 'src/shared/helpers/MediaHelper';
-import * as moment from 'moment';
+// import * as moment from 'moment';
+import dayjs from 'dayjs';
+
+
 
 @Injectable()
 export class AuthService {
@@ -283,7 +286,7 @@ export class AuthService {
     );
 
     employee.language = userLanguage;
-    employee.last_ims_login = moment(Date.now()).toISOString();
+    employee.last_ims_login = dayjs().toISOString();
     await this.employeeRepository.Save(employee);
 
     // if (employee.company_role.company.logo) {
