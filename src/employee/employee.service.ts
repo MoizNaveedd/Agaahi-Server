@@ -201,6 +201,7 @@ export class EmployeeService {
     employee.created_by = data.created_by ?? null;
     employee.gender = data?.gender ?? null;
     employee.company_id = data.company_id;
+    employee.pin = '1223';
 
     return await this.employeeRepository.Save(employee);
   }

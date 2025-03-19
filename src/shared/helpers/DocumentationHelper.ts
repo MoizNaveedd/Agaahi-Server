@@ -1,6 +1,7 @@
+import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-export default function InitializeSwagger(app) {
+export function InitializeSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('Agaahi API Documentation')
     .setVersion('0.1')
@@ -14,17 +15,16 @@ export default function InitializeSwagger(app) {
     })
     .build();
 
-  const document = SwaggerModule.createDocument(app, config, { 
+  const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (controllerKey: string, methodKey: string) => {
-      // Convert pascal case to space separated words
       return methodKey.replace(/([A-Z])/g, ' $1').trim();
     },
   });
   SwaggerModule.setup('/api-docs', app, document, {
     explorer: true,
     swaggerOptions: {
-      defaultModelRendering: 'model', // Render model instead of example
-      displayOperationId: true // Display controller method name
+      defaultModelRendering: 'model',
+      displayOperationId: true,
     },
     customCss: `
       .swagger-ui .opblock .opblock-summary-path-description-wrapper {
@@ -34,6 +34,4 @@ export default function InitializeSwagger(app) {
         color: #888 !important;
       }`,
   });
-
-  return null;
 }

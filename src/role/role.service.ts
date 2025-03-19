@@ -26,6 +26,18 @@ export class RoleService {
     private employeeRepository: EmployeeRepository,
   ) {}
 
+
+  public async GetCompanyRole(user: IRedisUserModel, params) {
+    return await this.roleRepository.Find(
+      { is_deleted: 0 },)
+  }
+
+  public async GetRoleById(roleId: number, user: IRedisUserModel) {
+    return await this.roleRepository.FindOne(
+      { id: roleId, is_deleted: 0 },
+    );
+  }
+
   // public async AddRole(data: AddRoleDto, user: IRedisUserModel) {
   //   const roleExist = await 
   //     this.CheckRoleExist(user.company_id, data.name)

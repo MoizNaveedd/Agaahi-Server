@@ -283,7 +283,7 @@ export class AuthService {
     );
 
     employee.language = userLanguage;
-    employee.last_ims_login = moment(Date.now()).toISOString();
+    employee.last_ims_login = null;
     await this.employeeRepository.Save(employee);
 
     // if (employee.company_role.company.logo) {
