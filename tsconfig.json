@@ -12,10 +12,10 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "esModuleInterop": true,  // Helps with compatibility
+    "moduleResolution": "node", // Ensures compatibility with Node.js module resolution
+    "strict": true,  // Enabling strict mode to catch potential issues early
+    "forceConsistentCasingInFileNames": true,  // Ensures consistent casing in file names
+    "noFallthroughCasesInSwitch": true  // Adds protection against fallthrough cases in switch statements
   }
 }
