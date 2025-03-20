@@ -20,5 +20,12 @@ export function InitializeSwagger(app: INestApplication) {
       return methodKey.replace(/([A-Z])/g, ' $1').trim();
     },
   });
-  SwaggerModule.setup('/api-docs', app, document);
+  // SwaggerModule.setup('/api-docs', app, document);
+  SwaggerModule.setup('api-docs', app, document, {
+    customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.0/swagger-ui.css',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.0/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.0/swagger-ui-standalone-preset.js'
+    ]
+  });
 }
