@@ -20,18 +20,5 @@ export function InitializeSwagger(app: INestApplication) {
       return methodKey.replace(/([A-Z])/g, ' $1').trim();
     },
   });
-  SwaggerModule.setup('/api-docs', app, document, {
-    explorer: true,
-    swaggerOptions: {
-      defaultModelRendering: 'model',
-      displayOperationId: true,
-    },
-    customCss: `
-      .swagger-ui .opblock .opblock-summary-path-description-wrapper {
-        width: auto
-      }
-      .opblock-summary-operation-id {
-        color: #888 !important;
-      }`,
-  });
+  SwaggerModule.setup('/api-docs', app, document);
 }
