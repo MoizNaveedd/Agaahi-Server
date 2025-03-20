@@ -1,13 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import InitializeSwagger from './shared/helpers/DocumentationHelper';
+import { InitializeSwagger } from './shared/helpers/DocumentationHelper';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const port = process.env.PORT || 3000;
-  InitializeSwagger(app);
+  app.setGlobalPrefix('api');
   app.enableCors();
+  InitializeSwagger(app);
+
+  const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`Agaahi Server is listening on ${port}`);
 }
