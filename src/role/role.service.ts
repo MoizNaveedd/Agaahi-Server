@@ -32,7 +32,7 @@ export class RoleService {
       { is_deleted: 0 },)
   }
 
-  public async GetRoleById(roleId: number, user?: IRedisUserModel) {
+  public async GetRoleById(roleId: number, user: IRedisUserModel) {
     return await this.roleRepository.FindOne(
       { id: roleId, is_deleted: 0 },
     );
