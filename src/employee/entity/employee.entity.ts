@@ -7,17 +7,11 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-// import { EmployeeStoreModel } from './employee-store.entity';
-// import { CompanyRoleModel } from 'src/role/entity/company-role.entity';
 import { Language } from 'src/shared/enums/language.enum';
-// import { StockAdjustmentModel } from 'src/stock-adjustment/entity/stock-adjustment.entity';
-// import { CashierDeviceModel } from 'src/pos-device/entity/cashier-device.entity';
 import { Gender } from 'src/shared/enums/gender.enum';
-// import { GetAWSSignedUrl } from 'src/shared/helpers/MediaHelper';
-// import { ExpenseModel } from 'src/expense/entity/expense.entity';
-import { appEnv } from 'src/shared/helpers/EnvHelper';
 import { RoleModel } from 'src/role/entity/role.entity';
 import { CompanyModel } from 'src/company/entity/company.entity';
+import {  ConversationModel } from 'src/chatbot/entity/chatbot-conversations.entity';
 
 @Entity(`employee`)
 export class EmployeeModel extends PostgresBaseModel {
@@ -170,25 +164,7 @@ export class EmployeeModel extends PostgresBaseModel {
   @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
   company: CompanyModel;
 
-  // @OneToMany(
-  //   () => EmployeeStoreModel,
-  //   (employee_store) => employee_store.employee,
-  // )
-  // employee_store: EmployeeStoreModel[];
-
-  // @OneToMany(
-  //   () => StockAdjustmentModel,
-  //   (stock_adjustment) => stock_adjustment.employee,
-  // )
-  // stock_adjustment: StockAdjustmentModel[];
-
-  // @OneToMany(
-  //   () => CashierDeviceModel,
-  //   (cashier_device) => cashier_device.employee,
-  // )
-  // cashier_device: CashierDeviceModel[];
-
-  // @OneToMany(() => ExpenseModel, (expense) => expense.employee)
-  // expense: ExpenseModel[];
+  @OneToMany(() => ConversationModel, (conversation) => conversation.employee)
+  conversations: ConversationModel[];
 
 }

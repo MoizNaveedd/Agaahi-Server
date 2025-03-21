@@ -23,7 +23,7 @@ export class CompanyService {
           const userLanguage = data.user_language || Language.English;
           if (companyExist) {
             let error: string;
-            if (data.email == companyExist.email) {
+            if (data.email == companyExist?.email) {
               error = ErrorMessageConstant[userLanguage].EmailAlreadyExists;
             } else {
               error = ErrorMessageConstant[userLanguage].PhoneNumberAlreadyExists;

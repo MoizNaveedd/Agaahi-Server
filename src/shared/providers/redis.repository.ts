@@ -27,7 +27,6 @@ export class RedisRepository {
   public async Get(token: string): Promise<any> {
     return await this.Connection.get(token);
   }
-  a;
 
   public async Set(token: string, data: any): Promise<any> {
     return await this.Connection.set(token, data);

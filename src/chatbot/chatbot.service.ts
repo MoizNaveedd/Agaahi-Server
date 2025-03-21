@@ -6,29 +6,132 @@ import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import { ChatBotDto } from './chatbot.dto';
 import { RoleService } from 'src/role/role.service';
 import Role from 'src/shared/enums/role-ims.enum';
+import { ChatHistoryRepository } from './chatbot.repository';
+import { ConversationModel } from './entity/chatbot-conversations.entity';
+import { ChatConversationRepository } from './chatbot-conversation.repository';
+import { GetChatHistoryDto } from './dto/chatbot.dto';
+import e from 'express';
 
 @Injectable()
 export class ChatbotService {
-    private fastApiUrl = `${appEnv('CHAT_BOT_URL')}query`;  // URL of FastAPI service
+  private fastApiUrl = `${appEnv('CHAT_BOT_URL')}query`; // URL of FastAPI service
 
-    constructor(private readonly httpService: HttpService,
-        private readonly roleService: RoleService
-    ) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly roleService: RoleService,
+    private readonly chatHistoryRepository: ChatHistoryRepository,
+    private readonly chatConversationRepository: ChatConversationRepository,
+  ) {}
 
-    public async SendMessage(userPrompt: ChatBotDto, user: IRedisUserModel): Promise<string> {
-        const employeeRole = await this.roleService.GetRoleById(user.role_id);
-        // console.log("here")
-        // console.log(user.role_id)
-        console.log(Role[user.role_id])
-        console.log(Role[user.role_id].toString())
-        try {
-            const response = await firstValueFrom(
-                this.httpService.post(this.fastApiUrl, { user_prompt: userPrompt.message , role: employeeRole.name })
-                // this.httpService.post(this.fastApiUrl, { user_prompt: userPrompt.message , role: `${Role[user.role_id]}` })
-            );
-            return response.data.response;  // Extract response from FastAPI
-        } catch (error) {
-            throw new BadRequestException(`Failed to fetch response from chatbot: ${error.message}`);
-        }
+  public async SendMessage(
+    userPrompt: ChatBotDto,
+    user: IRedisUserModel,
+  ): Promise<string> {
+    try {
+      const employeeRole = await this.roleService.GetRoleById(user.role_id);
+
+      const conversation = await this.getOrCreateConversationv2(user);
+
+      const response = await firstValueFrom(
+        this.httpService.post(this.fastApiUrl, {
+          user_prompt: userPrompt.message,
+          role: employeeRole.name,
+        }),
+      );
+
+      await this.chatHistoryRepository.SaveChatHistory({
+        conversation_id: conversation.id,
+        user_prompt: userPrompt.message,
+        response: response.data.response,
+      });
+      return response.data.response; // Extract response from
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to fetch response from chatbot: ${error}`,
+      );
     }
+  }
+
+//   private async getOrCreateConversation(
+//     user: IRedisUserModel,
+//     isNew: boolean,
+//   ): Promise<ConversationModel> {
+//     let conversation: ConversationModel;
+
+//     if (isNew) {
+//       conversation = new ConversationModel();
+//       conversation.employee_id = user.employee_id;
+//       await this.chatConversationRepository.Save(conversation); // Save the new conversation
+//     } else {
+//       conversation = await this.chatConversationRepository.FindOne({
+//         where: { user_id: user.employee_id },
+//         order: { created_at: 'DESC' },
+//       });
+
+//       if (!conversation) {
+//         conversation = new ConversationModel();
+//         conversation.employee_id = user.employee_id;
+//         await this.chatConversationRepository.Save(conversation);
+//       }
+//     }
+
+//     return conversation;
+//   }
+
+  private async getOrCreateConversationv2(user: IRedisUserModel) {
+    const conversation = await this.chatConversationRepository.FindOne(
+      { employee_id: user.employee_id }, 
+      { order: { created_at: 'DESC' } }, 
+    );
+
+    if (!conversation) {
+      return await this.CreateChatConversation(user);
+    }
+    return conversation;
+  }
+
+  public async GetChatHistory(
+    params: GetChatHistoryDto,
+    user: IRedisUserModel,
+  ) {
+    console.log('here');
+    return await this.chatConversationRepository.GetChatConversationHistory(
+      params,
+      user,
+    );
+  }
+
+  public async GetChatHistoryByConversationId(
+    conversationId: number,
+    user: IRedisUserModel,
+  ) {
+    return await this.chatConversationRepository.FindOne(
+      {
+        id: conversationId,
+        employee_id: user.employee_id,
+      },
+      {
+        relations: ['chat_history'],
+      },
+    );
+  }
+
+  public async CreateChatConversation(user: IRedisUserModel) {
+    const conversationExist = await this.chatConversationRepository.FindOne(
+      {
+        employee_id: user.employee_id,
+        is_deleted: 0,
+      },
+      { relations: ['chat_history'] },
+    );
+
+    if ((conversationExist.chat_history.length = 0)) {
+      return conversationExist;
+    }
+
+    const conversation = new ConversationModel();
+    conversation.employee_id = user.employee_id;
+    conversation.name = null;
+    return await this.chatConversationRepository.Save(conversation);
+  }
 }
