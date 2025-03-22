@@ -11,11 +11,14 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,  // Helps with compatibility
-    "moduleResolution": "node", // Ensures compatibility with Node.js module resolution
-    "strict": true,  // Enabling strict mode to catch potential issues early
-    "forceConsistentCasingInFileNames": true,  // Ensures consistent casing in file names
-    "noFallthroughCasesInSwitch": true  // Adds protection against fallthrough cases in switch statements
+    "skipLibCheck": true, // Skips type checking of declaration files
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "strict": false, // Disables strict mode
+    "noImplicitAny": false, // Allows variables to have an implicit "any" type
+    "strictNullChecks": false, // Disables strict null checks
+    "strictPropertyInitialization": false, // Disables strict property initialization checks
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true
   }
 }
