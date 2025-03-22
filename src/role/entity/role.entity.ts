@@ -4,6 +4,7 @@ import { AfterLoad, Column, Entity, OneToMany, OneToOne } from 'typeorm';
 // import { ActionPermissionModel } from 'src/permission/entity/action-permission.entity';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
 import { EmployeeModel } from 'src/employee/entity/employee.entity';
+import { CompanyRoleModel } from './company-role.entity';
 
 @Entity(`role`)
 export class RoleModel extends PostgresBaseModel {
@@ -40,8 +41,8 @@ export class RoleModel extends PostgresBaseModel {
   // )
   // action_permission: ActionPermissionModel;
 
-  // @OneToMany(() => CompanyRoleModel, (company_role) => company_role.role)
-  // company_role: CompanyRoleModel[];
+  @OneToMany(() => CompanyRoleModel, (company_role) => company_role.role)
+  company_role: CompanyRoleModel[];
 
   @OneToMany(() => EmployeeModel, (employee) => employee.role)
 employee: EmployeeModel[];

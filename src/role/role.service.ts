@@ -6,21 +6,22 @@ import {
 } from '@nestjs/common';
 import { RoleRepository } from './repository/role.repository';
 import { RoleModel } from './entity/role.entity';
-// import { CompanyRoleRepository } from './repository/company-role.repository';
+import { CompanyRoleRepository } from './repository/company-role.repository';
 // import { CompanyRoleModel } from './entity/company-role.entity';
-import { AddRoleDto, UpdateRoleDto } from './dto/role.dto';
+import { AddRoleDto, SetCompanyRoleDto, UpdateRoleDto } from './dto/role.dto';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import { GetPaginationOptions } from 'src/shared/helpers/UtilHelper';
 // import { PermissionService } from 'src/permission/permission.service';
 import Role from 'src/shared/enums/role-ims.enum';
 import { ErrorMessageConstant } from 'src/shared/constants/ErrorMessageConstant';
 import { EmployeeRepository } from 'src/employee/repository/employee.repository';
+import { CompanyRoleModel } from './entity/company-role.entity';
 
 @Injectable()
 export class RoleService {
   constructor(
     private readonly roleRepository: RoleRepository,
-    // private readonly companyRoleRepository: CompanyRoleRepository,
+    private readonly companyRoleRepository: CompanyRoleRepository,
     // private readonly permissionService: PermissionService,
     @Inject(forwardRef(() => EmployeeRepository))
     private employeeRepository: EmployeeRepository,
@@ -36,6 +37,30 @@ export class RoleService {
     return await this.roleRepository.FindOne(
       { id: roleId, is_deleted: 0 },
     );
+  }
+
+  public async AddCompanyRole(data: SetCompanyRoleDto, user: IRedisUserModel){
+    const role = await this.roleRepository.FindOne(
+      { id: data.role_id, is_deleted: 0 },
+    );
+
+    if(!role){
+      throw new BadRequestException(
+        ErrorMessageConstant['en'].RoleNotExists,
+      );
+    }
+
+    const companyRoleExist = await this.companyRoleRepository.FindOne(
+      { company_id: user.company_id, role_id: data.role_id },
+    );
+
+    let companyRole = companyRoleExist ?? new CompanyRoleModel();
+    companyRole.company_id = user.company_id;
+    companyRole.role_id = data.role_id;
+    companyRole.table_permission = data.table_permission;
+
+    await this.companyRoleRepository.Save(companyRole);
+    return companyRole;
   }
 
   // public async AddRole(data: AddRoleDto, user: IRedisUserModel) {

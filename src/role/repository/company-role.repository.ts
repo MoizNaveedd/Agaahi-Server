@@ -1,18 +1,18 @@
-// import { Injectable } from '@nestjs/common';
-// import { BaseRepository } from 'src/shared/database/BaseRepository';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { CompanyRoleModel } from '../entity/company-role.entity';
+import { Injectable } from '@nestjs/common';
+import { BaseRepository } from 'src/shared/database/BaseRepository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CompanyRoleModel } from '../entity/company-role.entity';
 
-// @Injectable()
-// export class CompanyRoleRepository extends BaseRepository<CompanyRoleModel> {
-//   constructor(
-//     @InjectRepository(CompanyRoleModel)
-//     private companyRoleRepository: Repository<CompanyRoleModel>,
-//   ) {
-//     super(companyRoleRepository);
-//   }
-
+@Injectable()
+export class CompanyRoleRepository extends BaseRepository<CompanyRoleModel> {
+  constructor(
+    @InjectRepository(CompanyRoleModel)
+    private companyRoleRepository: Repository<CompanyRoleModel>,
+  ) {
+    super(companyRoleRepository);
+  }
+}
 //   public async GetCompanyRoles(user, filters, paginationParams) {
 //     const query = this.Repository.createQueryBuilder('company_role')
 //       .leftJoinAndSelect('company_role.role', 'role')

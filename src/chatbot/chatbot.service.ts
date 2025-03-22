@@ -10,7 +10,6 @@ import { ChatHistoryRepository } from './chatbot.repository';
 import { ConversationModel } from './entity/chatbot-conversations.entity';
 import { ChatConversationRepository } from './chatbot-conversation.repository';
 import { GetChatHistoryDto } from './dto/chatbot.dto';
-import e from 'express';
 
 @Injectable()
 export class ChatbotService {
@@ -44,7 +43,7 @@ export class ChatbotService {
         user_prompt: userPrompt.message,
         response: response.data.response,
       });
-      return response.data.response; // Extract response from
+      return response?.data.response; // Extract response from
     } catch (error) {
       throw new BadRequestException(
         `Failed to fetch response from chatbot: ${error}`,

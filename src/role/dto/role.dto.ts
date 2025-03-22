@@ -1,6 +1,8 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -29,6 +31,19 @@ export class AddRoleDto {
   action_permission: string[];
 }
 
+export class SetCompanyRoleDto {
+  @ApiProperty({ description: 'ID of the role', example: 2 })
+  @IsNumber()
+  role_id: number;
+
+  @ApiProperty({
+    example: ['read', 'write', 'delete'],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  table_permission?: string[];
+}
 export class GetRoleDto extends PaginationParam {
   @IsOptional()
   @IsString()

@@ -2,6 +2,8 @@ import { Language } from 'src/shared/enums/language.enum';
 import { PostgresBaseModel } from 'src/shared/database/PostgresModel';
 import { AfterLoad, Column, Entity, OneToMany, OneToOne } from 'typeorm';
 import { EmployeeModel } from 'src/employee/entity/employee.entity';
+import { DatabaseConnectionModel } from 'src/database-validator/entity/database-connection.entity';
+import { CompanyRoleModel } from 'src/role/entity/company-role.entity';
 
 @Entity(`company`)
 export class CompanyModel extends PostgresBaseModel {
@@ -99,11 +101,14 @@ export class CompanyModel extends PostgresBaseModel {
   })
   is_phone_verified: boolean;
 
-  // @OneToMany(() => CompanyRoleModel, (company_role) => company_role.company)
-  // company_role: CompanyRoleModel[];
+  @OneToMany(() => CompanyRoleModel, (company_role) => company_role.company)
+  company_role: CompanyRoleModel[];
 
   @OneToMany(() => EmployeeModel, (employee) => employee.role)
   employee: EmployeeModel[];
+
+  @OneToOne(() => DatabaseConnectionModel, (database_connection) => database_connection.company)
+  database_connection: DatabaseConnectionModel;
 
   //   @OneToMany(() => WarehouseModel, (warehouse) => warehouse.company)
   //   warehouse: WarehouseModel[];
