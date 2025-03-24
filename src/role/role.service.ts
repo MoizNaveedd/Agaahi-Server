@@ -35,8 +35,16 @@ export class RoleService {
 
   public async GetRoleById(roleId: number, user?: IRedisUserModel) {
     return await this.roleRepository.FindOne(
-      { id: roleId, is_deleted: 0 },
+      { id: roleId, is_deleted: 0 },{ relations: ['company_role'] }
     );
+  }
+
+  public async GetCompanyRoleDetails(roleId: number, user: IRedisUserModel){
+    return await this.companyRoleRepository.FindOne({
+      company_id: user.company_id,
+      role_id: roleId,
+      is_deleted: 0,
+    },{ relations: ['role'] });
   }
 
   public async AddCompanyRole(data: SetCompanyRoleDto, user: IRedisUserModel){

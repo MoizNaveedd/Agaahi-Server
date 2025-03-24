@@ -27,14 +27,21 @@ export class ChatbotService {
     user: IRedisUserModel,
   ): Promise<string> {
     try {
-      const employeeRole = await this.roleService.GetRoleById(user.role_id);
+      const [employeeRole, conversation] = await Promise.all([
+        this.roleService.GetCompanyRoleDetails(user.role_id, user),
+        this.getOrCreateConversationv2(userPrompt, user),
+      ]);
 
-      const conversation = await this.getOrCreateConversationv2(user);
+      if(!employeeRole){
+        throw new BadRequestException('Role has not been configured yet');
+      }
 
       const response = await firstValueFrom(
         this.httpService.post(this.fastApiUrl, {
           user_prompt: userPrompt.message,
-          role: employeeRole.name,
+          role: employeeRole.role.name,
+          allowed_tables: employeeRole.table_permission,
+          history: conversation.chat_history
         }),
       );
 
@@ -77,10 +84,14 @@ export class ChatbotService {
 //     return conversation;
 //   }
 
-  private async getOrCreateConversationv2(user: IRedisUserModel) {
+  private async getOrCreateConversationv2(data: ChatBotDto, user: IRedisUserModel) {
     const conversation = await this.chatConversationRepository.FindOne(
-      { employee_id: user.employee_id }, 
-      { order: { created_at: 'DESC' } }, 
+      { 
+      employee_id: user.employee_id, 
+      is_deleted: 0, 
+      ...(data?.conversation_id && { id: data.conversation_id }) 
+      },
+      { relations: ['chat_history'] },
     );
 
     if (!conversation) {
@@ -93,7 +104,6 @@ export class ChatbotService {
     params: GetChatHistoryDto,
     user: IRedisUserModel,
   ) {
-    console.log('here');
     return await this.chatConversationRepository.GetChatConversationHistory(
       params,
       user,

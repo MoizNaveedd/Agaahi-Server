@@ -37,7 +37,7 @@ export class SetCompanyRoleDto {
   role_id: number;
 
   @ApiProperty({
-    example: ['read', 'write', 'delete'],
+    example: ['order', 'employee', 'customer'],
     required: false,
   })
   @IsArray()
