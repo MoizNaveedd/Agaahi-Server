@@ -75,6 +75,7 @@ export class CompanyService {
         companyModel.last_name = data.last_name;
         companyModel.logo = image?.location;
         companyModel.is_active = true;
+        companyModel.is_database_validated = false;
     
         await this.companyRepository.Create(companyModel);
     

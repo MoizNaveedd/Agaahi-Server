@@ -7,10 +7,14 @@ import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import { RoleService } from 'src/role/role.service';
 import { CompanyRoleModel } from 'src/role/entity/company-role.entity';
 import Role from 'src/shared/enums/role-ims.enum';
+import { DatabaseConnectionModel } from './entity/database-connection.entity';
+import { DatabaseConnectionRepository } from './database-connection.repository';
 
 @Injectable()
 export class DatabasevalidatorService {
-  constructor(private roleService: RoleService) {}
+  constructor(private roleService: RoleService,
+    private databaseConnectionRepository: DatabaseConnectionRepository,
+  ) {}
 
   async createDatabaseConnection(connectionDetails: DatabaseConnectionDto) {
     if (connectionDetails.type === DatabaseType.POSTGRES) {
@@ -93,6 +97,8 @@ export class DatabasevalidatorService {
       await this.verifyDatabaseConnection(connectionDetails);
     if (isDatabaseExist) {
       const tableNames = await this.fetchSchemaDetails(connectionDetails);
+
+      await this.AddDatabaseConnection(connectionDetails, user);
       const companyRole = new CompanyRoleModel();
       companyRole.company_id = user.company_id;
       companyRole.role_id = Role.Owner;
@@ -104,5 +110,33 @@ export class DatabasevalidatorService {
         'The database does not exist or the connection failed.',
       );
     }
+  }
+
+  private async AddDatabaseConnection(
+    connectionDetails: DatabaseConnectionDto,
+    user: IRedisUserModel
+  ){
+    const databaseConnection = new DatabaseConnectionModel();
+    databaseConnection.company_id = user.company_id;
+    databaseConnection.type = connectionDetails.type;
+    databaseConnection.host = connectionDetails.host;
+    databaseConnection.port = connectionDetails.port;
+    databaseConnection.user = connectionDetails.user;
+    databaseConnection.password = connectionDetails.password;
+    databaseConnection.database = connectionDetails.database;
+
+    await this.databaseConnectionRepository.Save(databaseConnection);
+  }
+
+  public async GetTables(user: IRedisUserModel) {
+    const DatabaseConnection = await this.databaseConnectionRepository.FindOne({
+      company_id: user.company_id,
+    })
+
+    if(!DatabaseConnection){
+      throw new BadRequestException('Database connection details not found');
+    }
+
+    return await this.fetchSchemaDetails(DatabaseConnection);
   }
 }

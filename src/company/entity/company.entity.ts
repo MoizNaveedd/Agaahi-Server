@@ -101,6 +101,14 @@ export class CompanyModel extends PostgresBaseModel {
   })
   is_phone_verified: boolean;
 
+  @Column({
+    name: 'is_database_validated',
+    type: 'boolean',
+    default: false,
+    select: true,
+  })
+  is_database_validated: boolean;
+
   @OneToMany(() => CompanyRoleModel, (company_role) => company_role.company)
   company_role: CompanyRoleModel[];
 
