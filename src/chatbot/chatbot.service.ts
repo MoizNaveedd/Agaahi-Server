@@ -45,6 +45,16 @@ export class ChatbotService {
         }),
       );
 
+      if(conversation.chat_history.length == 0){
+        const response = await firstValueFrom(
+          this.httpService.post(`${appEnv('CHAT_BOT_URL')}conversation-name`, {
+            user_prompt: userPrompt.message,
+          }),
+        );
+
+        await this.UpdateCoversationById(conversation.id, response.data.conversation_name);
+      }
+
       await this.chatHistoryRepository.SaveChatHistory({
         conversation_id: conversation.id,
         user_prompt: userPrompt.message,
@@ -142,5 +152,35 @@ export class ChatbotService {
     conversation.employee_id = user.employee_id;
     conversation.name = null;
     return await this.chatConversationRepository.Save(conversation);
+  }
+
+  public async UpdateCoversationById(
+    conversationId: number,
+    name: string,
+  ){
+    const conversation = await this.chatConversationRepository.FindOne({
+      id: conversationId,
+    });
+
+    if (!conversation) {
+      throw new BadRequestException('Conversation not found');
+    }
+
+    conversation.name = name;
+    return await this.chatConversationRepository.Save(conversation);
+  }
+
+  public async DeleteConversationById(
+    conversationId: number,
+    user: IRedisUserModel
+  ){
+    const conversation = await this.GetChatHistoryByConversationId(
+      conversationId,user)
+
+    if (!conversation) {
+      throw new BadRequestException('Conversation not found');
+    }
+
+    return await this.chatConversationRepository.DeleteById(conversationId,true);
   }
 }

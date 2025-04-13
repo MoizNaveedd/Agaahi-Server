@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query, Param, Put } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, Put, Delete } from '@nestjs/common';
 import { ChatbotService } from './chatbot.service';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
 import { ChatBotDto } from './chatbot.dto';
@@ -43,5 +43,24 @@ export class ChatbotController {
   @Put('conversation')
   async CreateChatConversation(@CurrentUser() user: IRedisUserModel) {
     return await this.chatService.CreateChatConversation(user);
+  }
+
+  
+  @Authorized()
+  @Put('conversation/:conversationId')
+  async UpdateConversationById(
+    @Param('conversationId') conversationId: number,
+    @Body() name: string ,
+  @CurrentUser() user: IRedisUserModel) {
+    return await this.chatService.UpdateCoversationById(conversationId, name);
+  }
+
+  @Authorized()
+  @Delete('conversation/:conversationId')
+  async DeleteConversationById(
+    @Param('conversationId') conversationId: number,
+    @CurrentUser() user: IRedisUserModel,
+  ) {
+    return await this.chatService.DeleteConversationById(conversationId, user);
   }
 }

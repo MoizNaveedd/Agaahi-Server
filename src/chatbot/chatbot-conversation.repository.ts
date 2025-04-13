@@ -32,6 +32,7 @@ export class ChatConversationRepository extends BaseRepository<ConversationModel
         'conversation.employee_id',
         'conversation.created_at',
         'conversation.updated_at',
+        'conversation.name',
         'chat_history.id',
         'chat_history.user_prompt',
         'chat_history.response',
@@ -40,6 +41,7 @@ export class ChatConversationRepository extends BaseRepository<ConversationModel
       .where('conversation.employee_id = :employee_id', {
         employee_id: user.employee_id,
       })
+      .andWhere('conversation.is_deleted = 0')
       .orderBy('conversation.updated_at', 'DESC');
     if (pagination) {
       query.skip(pagination.offset).take(pagination.limit);
