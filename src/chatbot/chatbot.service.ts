@@ -259,7 +259,7 @@ public async SendMessage(
       { relations: ['chat_history'] },
     );
 
-    if ((conversationExist.chat_history.length = 0)) {
+    if ((conversationExist?.chat_history?.length == 0)) {
       return conversationExist;
     }
 
