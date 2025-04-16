@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class ChatBotDto {
@@ -11,4 +11,8 @@ export class ChatBotDto {
     @IsOptional()
     conversation_id?: number;
 
+    @ApiProperty({ example: false})
+    @IsOptional()
+    @IsBoolean()
+    is_new?: boolean;
 }

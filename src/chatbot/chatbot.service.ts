@@ -10,11 +10,11 @@ import { ChatHistoryRepository } from './chatbot.repository';
 import { ConversationModel } from './entity/chatbot-conversations.entity';
 import { ChatConversationRepository } from './chatbot-conversation.repository';
 import { GetChatHistoryDto } from './dto/chatbot.dto';
+import axios from 'axios';
 
 @Injectable()
 export class ChatbotService {
   private fastApiUrl = `${appEnv('CHAT_BOT_URL')}query`; // URL of FastAPI service
-
   constructor(
     private readonly httpService: HttpService,
     private readonly roleService: RoleService,
@@ -22,51 +22,51 @@ export class ChatbotService {
     private readonly chatConversationRepository: ChatConversationRepository,
   ) {}
 
-  public async SendMessage(
-    userPrompt: ChatBotDto,
-    user: IRedisUserModel,
-  ): Promise<string> {
-    try {
-      const [employeeRole, conversation] = await Promise.all([
-        this.roleService.GetCompanyRoleDetails(user.role_id, user),
-        this.getOrCreateConversationv2(userPrompt, user),
-      ]);
+  // public async SendMessage(
+  //   userPrompt: ChatBotDto,
+  //   user: IRedisUserModel,
+  // ): Promise<string> {
+  //   try {
+  //     const [employeeRole, conversation] = await Promise.all([
+  //       this.roleService.GetCompanyRoleDetails(user.role_id, user),
+  //       this.getOrCreateConversationv2(userPrompt, user),
+  //     ]);
 
-      if(!employeeRole){
-        throw new BadRequestException('Role has not been configured yet');
-      }
+  //     if(!employeeRole){
+  //       throw new BadRequestException('Role has not been configured yet');
+  //     }
 
-      const response = await firstValueFrom(
-        this.httpService.post(this.fastApiUrl, {
-          user_prompt: userPrompt.message,
-          role: employeeRole.role.name,
-          allowed_tables: employeeRole.table_permission,
-          history: conversation.chat_history
-        }),
-      );
+  //     const response = await firstValueFrom(
+  //       this.httpService.post(this.fastApiUrl, {
+  //         user_prompt: userPrompt.message,
+  //         role: employeeRole.role.name,
+  //         allowed_tables: employeeRole.table_permission,
+  //         history: conversation.chat_history
+  //       }),
+  //     );
 
-      if(conversation.chat_history.length == 0){
-        const response = await firstValueFrom(
-          this.httpService.post(`${appEnv('CHAT_BOT_URL')}conversation-name`, {
-            user_prompt: userPrompt.message,
-          }),
-        );
+  //     if(conversation.chat_history.length == 0){
+  //       const response = await firstValueFrom(
+  //         this.httpService.post(`${appEnv('CHAT_BOT_URL')}conversation-name`, {
+  //           user_prompt: userPrompt.message,
+  //         }),
+  //       );
 
-        await this.UpdateCoversationById(conversation.id, response.data.conversation_name);
-      }
+  //       await this.UpdateCoversationById(conversation.id, response.data.conversation_name);
+  //     }
 
-      await this.chatHistoryRepository.SaveChatHistory({
-        conversation_id: conversation.id,
-        user_prompt: userPrompt.message,
-        response: response.data.response,
-      });
-      return response?.data.response; // Extract response from
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to fetch response from chatbot: ${error}`,
-      );
-    }
-  }
+  //     await this.chatHistoryRepository.SaveChatHistory({
+  //       conversation_id: conversation.id,
+  //       user_prompt: userPrompt.message,
+  //       response: response.data.response,
+  //     });
+  //     return response?.data.response; // Extract response from
+  //   } catch (error) {
+  //     throw new BadRequestException(
+  //       `Failed to fetch response from chatbot: ${error}`,
+  //     );
+  //   }
+  // }
 
 //   private async getOrCreateConversation(
 //     user: IRedisUserModel,
@@ -94,6 +94,121 @@ export class ChatbotService {
 //     return conversation;
 //   }
 
+public async SendMessage(
+  userPrompt: ChatBotDto,
+  user: IRedisUserModel,
+) {
+  try {
+    const [employeeRole, conversation] = await Promise.all([
+      this.roleService.GetCompanyRoleDetails(user.role_id, user),
+      this.getOrCreateConversationv2(userPrompt, user),
+    ]);
+
+    if (!employeeRole) {
+      throw new BadRequestException('Role has not been configured yet');
+    }
+
+    const payload = {
+      user_prompt: userPrompt.message,
+      role: employeeRole.role.name.toLowerCase(),
+      // allowed_tables: employeeRole.table_permission,
+      // history: conversation.chat_history,
+    };
+
+    let chatbotResponse: string;
+
+    try {
+      console.log(`${this.fastApiUrl}`, payload)
+      const response = await axios.post(`${this.fastApiUrl}`, payload);
+      console.log(response.data.response); // Optional debug log
+      if (!response?.data?.response) {
+        throw new Error('Invalid response from chatbot server');
+      }
+
+      chatbotResponse = response.data.response; // Assuming the structure is: { response: "..." }
+    } catch (error: any) {
+      console.error('Error while sending request to chatbot server:', error?.message || error);
+      throw new Error('Failed to communicate with chatbot server');
+    }
+
+    // Fire-and-forget block for background tasks
+    setImmediate(async () => {
+      try {
+        // If it's a new conversation or empty history, get a conversation name
+        if (conversation?.chat_history?.length == 0 || userPrompt.is_new) {
+          const nameResponse = await firstValueFrom(
+            this.httpService.post(`${appEnv('CHAT_BOT_URL')}conversation-name`, {
+              user_prompt: userPrompt.message,
+            }),
+          );
+
+          if (nameResponse?.data?.conversation_name) {
+            await this.UpdateCoversationById(conversation.id, nameResponse.data.conversation_name);
+          }
+        }
+        console.log("here")
+        // Save chat history
+        await this.chatHistoryRepository.SaveChatHistory({
+          conversation_id: conversation.id,
+          user_prompt: userPrompt.message,
+          response: chatbotResponse,
+        });
+      } catch (backgroundError) {
+        console.error('Error in background operations:', backgroundError);
+      }
+    });
+
+    return chatbotResponse;
+  } catch (error: any) {
+    console.error('Chatbot Service Error:', error?.message || error);
+    throw new BadRequestException(
+      `Failed to fetch response from chatbot: ${error?.message || error}`,
+    );
+  }
+}
+
+// public async SendMessage(
+//   userPrompt: ChatBotDto,
+//   user: IRedisUserModel,
+// ) {
+//   try {
+//     const [employeeRole, conversation] = await Promise.all([
+//       this.roleService.GetCompanyRoleDetails(user.role_id, user),
+//       this.getOrCreateConversationv2(userPrompt, user),
+//     ]);
+
+//     if (!employeeRole) {
+//       throw new BadRequestException('Role has not been configured yet');
+//     }
+
+//     console.log("here")
+//     console.log(this.fastApiUrl);
+
+//     const payload = {
+//       prompt: userPrompt.message,
+//       // role: employeeRole.role.name,
+//       // allowed_tables: employeeRole.table_permission,
+//       // history: conversation.chat_history,
+
+//     };
+
+//     try {
+//       const response = await axios.post(`${this.fastApiUrl}`, payload);
+//       console.log(response.data.response);  // optional debug log
+
+//       return response.data; // ✅ Directly return response.data
+//     } catch (error) {
+//       console.error('Error while sending request to chatbot server:', error.message);
+//       throw new Error('Failed to communicate with chatbot server');
+//     }
+//   } catch (error) {
+//     throw new BadRequestException(
+//       `Failed to fetch response from chatbot: ${error}`,
+//     );
+//   }
+// }
+
+
   private async getOrCreateConversationv2(data: ChatBotDto, user: IRedisUserModel) {
     const conversation = await this.chatConversationRepository.FindOne(
       { 
@@ -104,7 +219,7 @@ export class ChatbotService {
       { relations: ['chat_history'] },
     );
 
-    if (!conversation) {
+    if (!conversation || data?.is_new) {
       return await this.CreateChatConversation(user);
     }
     return conversation;
