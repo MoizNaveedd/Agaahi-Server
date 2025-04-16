@@ -16,3 +16,9 @@ export class ChatBotDto {
     @IsBoolean()
     is_new?: boolean;
 }
+
+export class RenameConversation {
+    @ApiProperty({ example: "new name" })
+    @IsString()
+    name: string;
+}

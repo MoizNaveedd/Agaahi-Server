@@ -3,7 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
-import { ChatBotDto } from './chatbot.dto';
+import { ChatBotDto, RenameConversation } from './chatbot.dto';
 import { RoleService } from 'src/role/role.service';
 import Role from 'src/shared/enums/role-ims.enum';
 import { ChatHistoryRepository } from './chatbot.repository';
@@ -271,7 +271,7 @@ public async SendMessage(
 
   public async UpdateCoversationById(
     conversationId: number,
-    name: string,
+    request: RenameConversation,
   ){
     const conversation = await this.chatConversationRepository.FindOne({
       id: conversationId,
@@ -281,7 +281,7 @@ public async SendMessage(
       throw new BadRequestException('Conversation not found');
     }
 
-    conversation.name = name;
+    conversation.name = request.name;
     return await this.chatConversationRepository.Save(conversation);
   }
 
