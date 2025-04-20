@@ -26,6 +26,13 @@ export class ChatHistoryModel extends PostgresBaseModel {
   })
   response: string;
 
+  @Column({
+    name: 'base64_image',
+    type: 'text',
+    nullable: true,
+  })
+  base64_image: string;
+
   @ManyToOne(
     () => ConversationModel,
     (conversation) => conversation.chat_history,

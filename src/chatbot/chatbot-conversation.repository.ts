@@ -36,6 +36,8 @@ export class ChatConversationRepository extends BaseRepository<ConversationModel
         'chat_history.id',
         'chat_history.user_prompt',
         'chat_history.response',
+        'chat_history.base64_image',
+        'chat_history.created_at',
       ])
       .leftJoin('conversation.chat_history', 'chat_history')
       .where('conversation.employee_id = :employee_id', {

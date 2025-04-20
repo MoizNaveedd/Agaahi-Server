@@ -19,6 +19,7 @@ export class ChatHistoryRepository extends BaseRepository<ChatHistoryModel> {
     chat.conversation_id = data.conversation_id;
     chat.user_prompt = data.user_prompt;
     chat.response = data.response;
+    chat.base64_image = data.image;  
     return await this.Repository.save(chat);
   }
 }

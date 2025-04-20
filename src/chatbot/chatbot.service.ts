@@ -116,7 +116,8 @@ public async SendMessage(
     };
 
     let chatbotResponse: string;
-
+    let base64: string;
+    let format: string;
     try {
       console.log(`${this.fastApiUrl}`, payload)
       const response = await axios.post(`${this.fastApiUrl}`, payload);
@@ -125,7 +126,10 @@ public async SendMessage(
         throw new Error('Invalid response from chatbot server');
       }
 
+
       chatbotResponse = response.data.response; // Assuming the structure is: { response: "..." }
+      base64 = response.data.base64;
+      format = response.data.format;
     } catch (error: any) {
       console.error('Error while sending request to chatbot server:', error?.message || error);
       throw new Error('Failed to communicate with chatbot server');
@@ -152,13 +156,20 @@ public async SendMessage(
           conversation_id: conversation.id,
           user_prompt: userPrompt.message,
           response: chatbotResponse,
+          image: base64,
         });
       } catch (backgroundError) {
         console.error('Error in background operations:', backgroundError);
       }
     });
 
-    return chatbotResponse;
+
+    return {
+      response: chatbotResponse,
+      base64: base64 ?? null,
+      format: format ?? null,
+      conversation_id: conversation.id,
+    };
   } catch (error: any) {
     console.error('Chatbot Service Error:', error?.message || error);
     throw new BadRequestException(
