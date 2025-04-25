@@ -37,6 +37,7 @@ export class ChatConversationRepository extends BaseRepository<ConversationModel
         'chat_history.user_prompt',
         'chat_history.response',
         'chat_history.base64_image',
+        'chat_history.format',
         'chat_history.created_at',
       ])
       .leftJoin('conversation.chat_history', 'chat_history')

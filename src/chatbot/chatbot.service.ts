@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
@@ -20,7 +20,22 @@ export class ChatbotService {
     private readonly roleService: RoleService,
     private readonly chatHistoryRepository: ChatHistoryRepository,
     private readonly chatConversationRepository: ChatConversationRepository,
+    private readonly logger: Logger,
+
   ) {}
+
+  async checkChatbotConnection(): Promise<void> {
+    try {
+      const response = await axios.get(appEnv('CHAT_BOT_URL'));
+      if (response.status === 200) {
+        this.logger.log(`Chatbot connected successfully: ${appEnv('CHAT_BOT_URL')}`);
+      } else {
+        this.logger.warn(`Chatbot responded with status: ${response.status}`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to connect to chatbot: ${error.message}`);
+    }
+  }
 
   // public async SendMessage(
   //   userPrompt: ChatBotDto,
@@ -147,7 +162,7 @@ public async SendMessage(
           );
 
           if (nameResponse?.data?.conversation_name) {
-            await this.UpdateCoversationById(conversation.id, nameResponse.data.conversation_name);
+            await this.UpdateCoversationById(conversation.id, { name: nameResponse.data.conversation_name} as RenameConversation);
           }
         }
         console.log("here")
@@ -157,6 +172,7 @@ public async SendMessage(
           user_prompt: userPrompt.message,
           response: chatbotResponse,
           image: base64,
+          format: format,
         });
       } catch (backgroundError) {
         console.error('Error in background operations:', backgroundError);

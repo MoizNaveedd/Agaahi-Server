@@ -3,4 +3,5 @@ export interface IChatMessage {
     response: string;
     conversation_id: number;
     image?: string;
+    format?: string;
 }
