@@ -23,7 +23,6 @@ export class ChatbotController {
     @CurrentUser() user: IRedisUserModel,
     @Query() data: GetChatHistoryDto,
   ) {
-    console.log('data', data);
     return await this.chatService.GetChatHistory(data, user);
   }
 
