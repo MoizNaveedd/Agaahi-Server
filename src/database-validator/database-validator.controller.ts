@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import { DatabasevalidatorService } from './database-validator.service';
 import { DatabaseConnectionDto } from './database-validator.dto';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
@@ -18,8 +18,11 @@ export class DatabaseValidatorController {
 
   @Authorized()
   @Post('schema')
-  async getSchema(@Body() connectionDetails: DatabaseConnectionDto, @CurrentUser() user: IRedisUserModel) {
-    return await this.databaseValidatorService.getSchema(connectionDetails, user);
+  async AddDatabase(@Body() connectionDetails: DatabaseConnectionDto, @CurrentUser() user: IRedisUserModel,   
+  @Req() req: Request, // Inject the Request object
+) { 
+  let token = req.headers['authorization'] || req.headers['Authorization'];
+    return await this.databaseValidatorService.getSchema(connectionDetails, user,token);
   }
 
   @Authorized()

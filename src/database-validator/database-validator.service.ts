@@ -9,11 +9,13 @@ import { CompanyRoleModel } from 'src/role/entity/company-role.entity';
 import Role from 'src/shared/enums/role-ims.enum';
 import { DatabaseConnectionModel } from './entity/database-connection.entity';
 import { DatabaseConnectionRepository } from './database-connection.repository';
+import { EmployeeService } from 'src/employee/employee.service';
 
 @Injectable()
 export class DatabasevalidatorService {
   constructor(private roleService: RoleService,
     private databaseConnectionRepository: DatabaseConnectionRepository,
+    private employeeService: EmployeeService, // Assuming you have an EmployeeService to handle employee-related operations 
   ) {}
 
   async createDatabaseConnection(connectionDetails: DatabaseConnectionDto) {
@@ -92,6 +94,7 @@ export class DatabasevalidatorService {
   async getSchema(
     connectionDetails: DatabaseConnectionDto,
     user: IRedisUserModel,
+    token: string,
   ) {
     const isDatabaseExist =
       await this.verifyDatabaseConnection(connectionDetails);
@@ -104,7 +107,9 @@ export class DatabasevalidatorService {
       companyRole.role_id = Role.Owner;
       companyRole.table_permission = tableNames;
       await this.roleService.AddCompanyRole(companyRole, user);
-      return tableNames;
+      const employee = await this.employeeService.Me(user.employee_id);
+      
+      return {employee: employee,token: token, tableNames: tableNames};
     } else {
       throw new BadRequestException(
         'The database does not exist or the connection failed.',
