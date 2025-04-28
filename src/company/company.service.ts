@@ -4,7 +4,7 @@ import { ErrorMessageConstant } from 'src/shared/constants/ErrorMessageConstant'
 import { Language } from 'src/shared/enums/language.enum';
 import { CompanyRepository } from './company.repository';
 import { CompanyModel } from './entity/company.entity';
-import { HashText } from 'src/shared/helpers/UtilHelper';
+import { GetPaginationOptions, HashText } from 'src/shared/helpers/UtilHelper';
 import { IEmployee } from 'src/shared/interfaces/IEmployee.interface';
 import Role from 'src/shared/enums/role-ims.enum';
 import { EmployeeService } from 'src/employee/employee.service';
@@ -98,5 +98,9 @@ export class CompanyService {
     
         // await this.companyPaymentMethodRepository.SaveAll(paymentMethods);
         return companyModel;
+      }
+
+      public async GetCompanies(params){
+        return await this.companyRepository.GetCompanies(params);
       }
 }

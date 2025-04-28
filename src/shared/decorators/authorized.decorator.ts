@@ -3,8 +3,8 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { UserGuard } from '../guard/user.guard';
 import { RolePermissions } from '../enums/permission.enum';
 // import { CashierGuard } from '../guard/cashier.guard';
-// import { AdminRole } from '../enums/admin-role.enum';
-// import { AdminGuard } from '../guard/admin.guard';
+import { AdminRole } from '../enums/admin-role.enum';
+import { AdminGuard } from '../guard/admin.guard';
 
 export function Authorized(action?: RolePermissions) {
   return applyDecorators(
@@ -22,10 +22,10 @@ export function Authorized(action?: RolePermissions) {
 //   );
 // }
 
-// export function AuthorizedAdmin(...roles: AdminRole[]) {
-//   return applyDecorators(
-//     SetMetadata("roles", roles),
-//     UseGuards(AdminGuard),
-//     ApiBearerAuth(),
-//   );
-// }
+export function AuthorizedAdmin(...roles: AdminRole[]) {
+  return applyDecorators(
+    SetMetadata("roles", roles),
+    UseGuards(AdminGuard),
+    ApiBearerAuth(),
+  );
+}
