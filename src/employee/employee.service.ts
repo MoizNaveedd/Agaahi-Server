@@ -549,7 +549,7 @@ export class EmployeeService {
       );
     }
 
-    const password = await HashText(data.new_password);
+    const password = await HashText(data.newPassword);
     await this.employeeRepository.Update(
       { id: employeeModel.id },
       { password: password },

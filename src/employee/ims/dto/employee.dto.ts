@@ -204,6 +204,14 @@ export class ChangePasswordDto {
     message:
       "New Password must be at least 8 characters long and contain one number.",
   })
-  new_password: string;
+  newPassword: string;
+
+  @IsNotEmpty()
+  @MinLength(8)
+  @Matches(/^(?=.*\d).{8,50}$/i, {
+    message:
+      "New Password must be at least 8 characters long and contain one number.",
+  })
+  confirmNewPassword: string;
 }
 

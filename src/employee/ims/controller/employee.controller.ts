@@ -33,7 +33,14 @@ import { EmployeeService } from '../../employee.service';
 import { AuthService } from '../../auth.service';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
-import { AddEmployeeDto, GetEmployeeDto, LoginDto, UpdateEmployeeDto, UpdateEmployeeLanguageDto } from '../dto/employee.dto';
+import {
+  AddEmployeeDto,
+  ChangePasswordDto,
+  GetEmployeeDto,
+  LoginDto,
+  UpdateEmployeeDto,
+  UpdateEmployeeLanguageDto,
+} from '../dto/employee.dto';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import { PortalType } from 'src/shared/enums/portal.enum';
 // import { PortalType } from 'src/shared/enums/portal.enum';
@@ -49,11 +56,11 @@ export class EmployeeController {
     private readonly authService: AuthService,
   ) {}
 
-//   @Post('/validate-email')
-//   async ValidateEmail(@Body() data: ValidateEmailDto) {
-//     const employee = await this.authService.ValidateEmail(data);
-//     return employee;
-//   }
+  //   @Post('/validate-email')
+  //   async ValidateEmail(@Body() data: ValidateEmailDto) {
+  //     const employee = await this.authService.ValidateEmail(data);
+  //     return employee;
+  //   }
 
   @Post('/login')
   async login(@Body() data: LoginDto) {
@@ -81,18 +88,29 @@ export class EmployeeController {
     return employee;
   }
 
-//   @Authorized(RolePermissions.DeleteEmployee)
-//   @Delete('/:employeeId([0-9]+)')
-//   async DeleteEmployee(
-//     @Param('employeeId') employeeId: number,
-//     @CurrentUser() user: IRedisUserModel,
-//   ) {
-//     const employee = await this.employeeService.DeleteEmployee(
-//       employeeId,
-//       user,
-//     );
-//     return employee;
-//   }
+  //   @Authorized(RolePermissions.DeleteEmployee)
+  //   @Delete('/:employeeId([0-9]+)')
+  //   async DeleteEmployee(
+  //     @Param('employeeId') employeeId: number,
+  //     @CurrentUser() user: IRedisUserModel,
+  //   ) {
+  //     const employee = await this.employeeService.DeleteEmployee(
+  //       employeeId,
+  //       user,
+  //     );
+  //     return employee;
+  //   }
+
+  @Authorized()
+  @Put('/reset-password')
+  async ChangePassword(
+    @Body() data: ChangePasswordDto,
+    @CurrentUser() user: IRedisUserModel,
+  ) {
+    console.log('I am under water');
+    await this.employeeService.ChangePassword(data, user);
+    return {};
+  }
 
   @Authorized()
   @Put('/:employeeId')
@@ -141,50 +159,42 @@ export class EmployeeController {
   async UpdateEmployeeLanguage(
     @Body() data: UpdateEmployeeLanguageDto,
     @CurrentUser() user: IRedisUserModel,
-  ){
-    const employee = await this.employeeService.UpdateEmployeeLanguage(data, user);
+  ) {
+    const employee = await this.employeeService.UpdateEmployeeLanguage(
+      data,
+      user,
+    );
     return employee;
   }
 
-//   @Post('/forgot-password')
-//   async ForgotPassword(@Body() data: ForgotPasswordDto) {
-//     return await this.authService.ForgotPassword(data);
-//   }
+  //   @Post('/forgot-password')
+  //   async ForgotPassword(@Body() data: ForgotPasswordDto) {
+  //     return await this.authService.ForgotPassword(data);
+  //   }
 
-//   @Post('/reset-password/:token')
-//   async ResetPassword(
-//     @Body() data: ResetPasswordDto,
-//     @Param('token') token: string,
-//   ) {
-//     return await this.authService.ResetPassword(data, token);
-//   }
+  //   @Post('/reset-password/:token')
+  //   async ResetPassword(
+  //     @Body() data: ResetPasswordDto,
+  //     @Param('token') token: string,
+  //   ) {
+  //     return await this.authService.ResetPassword(data, token);
+  //   }
 
-//   @Authorized(RolePermissions.UpdateEmployee)
-//   @Put('/mfa/revoke/:employeeId([0-9]+)')
-//   async MfaRevoke(
-//     @Param('employeeId') employeeId: number,
-//     @CurrentUser() user: IRedisUserModel,
-//   ) {
-//     return await this.authService.MfaRevoke(employeeId, user);
-//   }
+  //   @Authorized(RolePermissions.UpdateEmployee)
+  //   @Put('/mfa/revoke/:employeeId([0-9]+)')
+  //   async MfaRevoke(
+  //     @Param('employeeId') employeeId: number,
+  //     @CurrentUser() user: IRedisUserModel,
+  //   ) {
+  //     return await this.authService.MfaRevoke(employeeId, user);
+  //   }
 
-//   @Authorized()
-//   @Get('/name')
-//   async GetEmployeeName(
-//     @Query() params: GetEmployeeDto,
-//     @CurrentUser() user: IRedisUserModel,
-//   ) {
-//     return await this.employeeService.GetEmployeeName(user, params);
-//   }
- 
-//   @Authorized()
-//   @Post("/change-password")
-//   async ChangePassword(
-//     @Body() data: ChangePasswordDto,
-//     @CurrentUser({ required: true })
-//     user: IRedisUserModel,
-//   ) {
-//     await this.employeeService.ChangePassword(data, user);
-//     return {};
-//   } 
+  //   @Authorized()
+  //   @Get('/name')
+  //   async GetEmployeeName(
+  //     @Query() params: GetEmployeeDto,
+  //     @CurrentUser() user: IRedisUserModel,
+  //   ) {
+  //     return await this.employeeService.GetEmployeeName(user, params);
+  //   }
 }
