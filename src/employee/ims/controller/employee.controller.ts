@@ -107,7 +107,6 @@ export class EmployeeController {
     @Body() data: ChangePasswordDto,
     @CurrentUser() user: IRedisUserModel,
   ) {
-    console.log('I am under water');
     await this.employeeService.ChangePassword(data, user);
     return {};
   }
