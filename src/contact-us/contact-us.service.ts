@@ -16,6 +16,7 @@ export class ContactUsService {
         contactUs.last_name = data.last_name;
         contactUs.email = data.email;
         contactUs.message = data.message;
+        contactUs.phone = data.phone;
         // contactUs.created_by = user.employee_id ?? null; // Assuming employee_id is the ID of the user creating the contact us message
         // contactUs.company_id = user.company_id || null; // Set company_id if provided, otherwise null
 

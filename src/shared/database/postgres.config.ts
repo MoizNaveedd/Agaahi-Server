@@ -12,7 +12,7 @@ export const postgresConfig: TypeOrmModuleOptions = {
   username: process.env['DB_POSTGRES_USER'],
   password: process.env['DB_POSTGRES_PASS'],
   entities: [path.join(__dirname, '..', '..', '/**/entity/*.entity.js')],
-  synchronize: false,
+  synchronize: true,
   logging: ['error', 'schema'],
   retryAttempts: 1,
   migrations: [

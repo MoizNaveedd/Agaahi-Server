@@ -32,7 +32,7 @@ export class ContactUsModel extends PostgresBaseModel {
         name: 'phone',
         type: 'varchar',
         length: 15,
-        nullable: false,
+        nullable: true,
     })
     phone: string;
 
