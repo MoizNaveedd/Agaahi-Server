@@ -286,7 +286,7 @@ public async SendMessage(
     return await this.chatConversationRepository.FindOne(
       {
         id: conversationId,
-        employee_id: user.employee_id,
+        // employee_id: user.employee_id,
       },
       {
         relations: ['chat_history'],
