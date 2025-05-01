@@ -26,7 +26,7 @@ export class EmployeeModel extends PostgresBaseModel {
   @Column({
     name: 'country_code',
     type: 'varchar',
-    length: 5,
+    length: 200,
     nullable: true,
   })
   country_code: string;
