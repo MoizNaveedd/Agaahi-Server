@@ -38,6 +38,23 @@ export class ChatbotController {
     );
   }
 
+    
+  @Authorized()
+  @Get('/employee-history/:employeeId')
+  async GetEmployeeHistory(
+    @Param('employeeId') employeeId: number,
+    @CurrentUser() user: IRedisUserModel,
+    @Query() data: GetChatHistoryDto,
+  ) {
+    const employee = await this.chatService.GetHistoryByEmployee(
+      data,
+      user,
+      employeeId,
+
+    );
+    return employee;
+  }
+
   @Authorized()
   @Put('conversation')
   async CreateChatConversation(@CurrentUser() user: IRedisUserModel) {

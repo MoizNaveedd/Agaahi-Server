@@ -20,6 +20,7 @@ export class ChatConversationRepository extends BaseRepository<ConversationModel
   public async GetChatConversationHistory(
     data: GetChatHistoryDto,
     user: IRedisUserModel,
+    userId
   ) { 
     const pagination = GetPaginationOptions(data);
     const query = this.Repository.createQueryBuilder('conversation')
@@ -31,7 +32,7 @@ export class ChatConversationRepository extends BaseRepository<ConversationModel
         'conversation.name',
       ])
       .where('conversation.employee_id = :employee_id', {
-        employee_id: user.employee_id,
+        employee_id: userId ?? user.employee_id,
       })
       .andWhere('conversation.is_deleted = 0')
       .orderBy('conversation.updated_at', 'DESC');

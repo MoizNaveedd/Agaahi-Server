@@ -259,6 +259,23 @@ public async SendMessage(
     return await this.chatConversationRepository.GetChatConversationHistory(
       params,
       user,
+      null
+    );
+  }
+
+  public async GetHistoryByEmployee(
+    params: GetChatHistoryDto,
+    user: IRedisUserModel,
+    employeeId: number,
+  ){
+    if(user.role_id != Role.Owner){
+      throw new BadRequestException('You are not authorized to access this conversation');
+    }
+
+    return await this.chatConversationRepository.GetChatConversationHistory(
+      params,
+      user,
+      employeeId
     );
   }
 
