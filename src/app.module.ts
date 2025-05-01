@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { ChatbotService } from './chatbot/chatbot.service';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ChatbotService } from './chatbot/chatbot.service';
     CompanyModule,
     ChatbotModule,
     DatabaseValidatorModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

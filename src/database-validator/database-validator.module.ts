@@ -10,6 +10,7 @@ import { EmployeeModule } from 'src/employee/employee.module';
 @Module({
   imports: [TypeOrmModule.forFeature([DatabaseConnectionModel]), RoleModule, EmployeeModule],
   controllers: [DatabaseValidatorController],
-  providers: [DatabasevalidatorService, DatabaseConnectionRepository]
+  providers: [DatabasevalidatorService, DatabaseConnectionRepository],
+  exports: [DatabasevalidatorService, DatabaseConnectionRepository],
 })
 export class DatabaseValidatorModule {}
