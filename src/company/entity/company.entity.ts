@@ -4,6 +4,7 @@ import { AfterLoad, Column, Entity, OneToMany, OneToOne } from 'typeorm';
 import { EmployeeModel } from 'src/employee/entity/employee.entity';
 import { DatabaseConnectionModel } from 'src/database-validator/entity/database-connection.entity';
 import { CompanyRoleModel } from 'src/role/entity/company-role.entity';
+import { ContactUsModel } from 'src/contact-us/entity/contact-us.entity';
 
 @Entity(`company`)
 export class CompanyModel extends PostgresBaseModel {
@@ -117,6 +118,11 @@ export class CompanyModel extends PostgresBaseModel {
 
   @OneToOne(() => DatabaseConnectionModel, (database_connection) => database_connection.company)
   database_connection: DatabaseConnectionModel;
+
+  @OneToMany(() => ContactUsModel, (contactUs) => contactUs.company, {
+    cascade: true, // Automatically handle related ContactUs entities
+  })
+  contactUs: ContactUsModel[];
 
   //   @OneToMany(() => WarehouseModel, (warehouse) => warehouse.company)
   //   warehouse: WarehouseModel[];

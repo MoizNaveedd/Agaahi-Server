@@ -60,11 +60,8 @@ export class CompanyRepository extends BaseRepository<CompanyModel> {
         'company.is_active',
         'company.created_at',
         'COUNT(DISTINCT employee.id) AS total_employees',
-        'COUNT(DISTINCT store.id) AS total_stores',
       ])
-      .leftJoin('company.company_role', 'company_role')
-      .leftJoin('company_role.employee', 'employee')
-      .leftJoin('company.store', 'store')
+      .leftJoin('company.employee', 'employee')
       .where('company.is_deleted = :is_deleted', { is_deleted: 0 })
       .groupBy('company.id')
       .orderBy('company.created_at', 'DESC');
