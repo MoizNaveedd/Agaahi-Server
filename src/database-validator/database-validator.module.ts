@@ -11,6 +11,7 @@ import { SharedModule } from 'src/shared/shared.module';
 @Module({
   imports: [TypeOrmModule.forFeature([DatabaseConnectionModel]), RoleModule, EmployeeModule, SharedModule],
   controllers: [DatabaseValidatorController],
-  providers: [DatabasevalidatorService, DatabaseConnectionRepository]
+  providers: [DatabasevalidatorService, DatabaseConnectionRepository],
+  exports: [DatabasevalidatorService, DatabaseConnectionRepository],
 })
 export class DatabaseValidatorModule {}

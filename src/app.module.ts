@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { ChatbotService } from './chatbot/chatbot.service';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminModule } from './admin/admin.module';
 import { ContactUsModule } from './contact-us/contact-us.module';
 
@@ -21,6 +22,7 @@ import { ContactUsModule } from './contact-us/contact-us.module';
     CompanyModule,
     ChatbotModule,
     DatabaseValidatorModule,
+    DashboardModule,
     AdminModule,
     ContactUsModule,
   ],

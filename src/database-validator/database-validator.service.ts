@@ -173,4 +173,16 @@ export class DatabasevalidatorService {
 
     return await this.fetchSchemaDetails(DatabaseConnection);
   }
+
+  public async GetDBConnectionDetailByCompanyId(user: IRedisUserModel){
+    const DatabaseConnection = await this.databaseConnectionRepository.FindOne({
+      company_id: user.company_id,
+    })
+
+    if(!DatabaseConnection){
+      throw new BadRequestException('Database connection details not found');
+    }
+
+    return DatabaseConnection;
+  }
 }

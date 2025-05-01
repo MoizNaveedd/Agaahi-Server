@@ -12,6 +12,7 @@ import { Gender } from 'src/shared/enums/gender.enum';
 import { RoleModel } from 'src/role/entity/role.entity';
 import { CompanyModel } from 'src/company/entity/company.entity';
 import {  ConversationModel } from 'src/chatbot/entity/chatbot-conversations.entity';
+import { DashboardChartsModel } from 'src/dashboard/entity/dashboard.entity';
 
 @Entity(`employee`)
 export class EmployeeModel extends PostgresBaseModel {
@@ -167,4 +168,6 @@ export class EmployeeModel extends PostgresBaseModel {
   @OneToMany(() => ConversationModel, (conversation) => conversation.employee)
   conversations: ConversationModel[];
 
+  @OneToMany(() => DashboardChartsModel, (dashboard) => dashboard.employee)
+  dashboard: DashboardChartsModel[];
 }
