@@ -5,10 +5,12 @@ import { CompanyService } from './company.service';
 import { CompanyRepository } from './company.repository';
 import { CompanyModel } from './entity/company.entity';
 import { EmployeeModule } from 'src/employee/employee.module';
+import { RoleModule } from 'src/role/role.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CompanyModel]),
   EmployeeModule,
+  RoleModule,
 ],
   controllers: [CompanyController],
   providers: [CompanyService, CompanyRepository],

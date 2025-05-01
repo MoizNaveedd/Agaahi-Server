@@ -39,9 +39,9 @@ export class RoleService {
     );
   }
 
-  public async GetCompanyRoleDetails(roleId: number, user: IRedisUserModel){
+  public async GetCompanyRoleDetails(roleId: number, company_id: number){
     return await this.companyRoleRepository.FindOne({
-      company_id: user.company_id,
+      company_id: company_id,
       role_id: roleId,
       is_deleted: 0,
     },{ relations: ['role'] });

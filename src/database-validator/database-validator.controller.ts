@@ -9,20 +9,19 @@ import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 export class DatabaseValidatorController {
   constructor(private readonly databaseValidatorService: DatabasevalidatorService ) {}
 
-  @Authorized()
+  // @Authorized()
   @Post('verify')
   async verifyDatabase(@Body() connectionDetails: DatabaseConnectionDto, @CurrentUser() user: IRedisUserModel) {
     const isValid = await this.databaseValidatorService.verifyDatabaseConnection(connectionDetails);
     return { success: isValid, message: isValid ? 'Database connection successful' : 'Failed to connect to database' };
   }
 
-  @Authorized()
+  // @Authorized()
   @Post('schema')
-  async AddDatabase(@Body() connectionDetails: DatabaseConnectionDto, @CurrentUser() user: IRedisUserModel,   
-  @Req() req: Request, // Inject the Request object
+  async AddDatabase(@Body() connectionDetails: DatabaseConnectionDto   
 ) { 
-  let token = req.headers['authorization'] || req.headers['Authorization'];
-    return await this.databaseValidatorService.getSchema(connectionDetails, user,token);
+  // let token = req.headers['authorization'] || req.headers['Authorization'];
+    return await this.databaseValidatorService.getSchema(connectionDetails);
   }
 
   @Authorized()

@@ -10,11 +10,17 @@ import Role from 'src/shared/enums/role-ims.enum';
 import { DatabaseConnectionModel } from './entity/database-connection.entity';
 import { DatabaseConnectionRepository } from './database-connection.repository';
 import { EmployeeService } from 'src/employee/employee.service';
+import { CompanyRoleRepository } from 'src/role/repository/company-role.repository';
+import { EmployeeRepository } from 'src/employee/repository/employee.repository';
+import { RedisRepository } from 'src/shared/providers/redis.repository';
 
 @Injectable()
 export class DatabasevalidatorService {
   constructor(private roleService: RoleService,
+    private companyRoleRepository: CompanyRoleRepository,
     private databaseConnectionRepository: DatabaseConnectionRepository,
+    private employeeRepository: EmployeeRepository,
+    private redisRepository: RedisRepository, // Assuming you have a Redis repository to handle Redis operations
     private employeeService: EmployeeService, // Assuming you have an EmployeeService to handle employee-related operations 
   ) {}
 
@@ -93,21 +99,40 @@ export class DatabasevalidatorService {
 
   async getSchema(
     connectionDetails: DatabaseConnectionDto,
-    user: IRedisUserModel,
-    token: string,
+    // user: IRedisUserModel,
+    // token: string,
   ) {
     const isDatabaseExist =
       await this.verifyDatabaseConnection(connectionDetails);
     if (isDatabaseExist) {
       const tableNames = await this.fetchSchemaDetails(connectionDetails);
 
-      await this.AddDatabaseConnection(connectionDetails, user);
-      const companyRole = new CompanyRoleModel();
-      companyRole.company_id = user.company_id;
-      companyRole.role_id = Role.Owner;
-      companyRole.table_permission = tableNames;
-      await this.roleService.AddCompanyRole(companyRole, user);
-      const employee = await this.employeeService.Me(user.employee_id);
+      await this.AddDatabaseConnection(connectionDetails, connectionDetails.company_id);
+      // const companyRole = new CompanyRoleModel();
+      // companyRole.company_id = connectionDetails.company_id;
+      // companyRole.role_id = Role.Owner;
+      // companyRole.table_permission = tableNames;
+      // await this.roleService.AddCompanyRole(companyRole, user);
+
+
+      const companyRole = await this.roleService.GetCompanyRoleDetails(Role.Owner, connectionDetails.company_id);
+      // companyRole.table_permission = tableNames;
+      await this.companyRoleRepository.Update({ id: companyRole.id }, {table_permission : tableNames});
+
+      const employee = await this.employeeRepository.FindOne({ company_id: connectionDetails.company_id, role_id: Role.Owner });
+
+      const employeeKey = await this.redisRepository.Get(`employee-ims-${employee.id}`);
+
+      if (!employeeKey) {
+        throw new Error('No data found in Redis for this employee');
+      }
+      
+      const parsedData = JSON.parse(employeeKey);
+
+      const key = parsedData.token;
+      
+      const token = key.split('ims-')[1];
+
       
       return {employee: employee,token: token, tableNames: tableNames};
     } else {
@@ -119,10 +144,14 @@ export class DatabasevalidatorService {
 
   private async AddDatabaseConnection(
     connectionDetails: DatabaseConnectionDto,
-    user: IRedisUserModel
+    company_id: number,
   ){
-    const databaseConnection = new DatabaseConnectionModel();
-    databaseConnection.company_id = user.company_id;
+    const existingConnection = await this.databaseConnectionRepository.FindOne({
+      company_id: company_id,
+    });
+
+    const databaseConnection = existingConnection ?? new DatabaseConnectionModel();
+    databaseConnection.company_id = company_id;
     databaseConnection.type = connectionDetails.type;
     databaseConnection.host = connectionDetails.host;
     databaseConnection.port = connectionDetails.port;

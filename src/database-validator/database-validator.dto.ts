@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsNotEmpty, IsString, Min, Max } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsString, Min, Max, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum DatabaseType {
@@ -36,4 +36,9 @@ export class DatabaseConnectionDto {
   @IsString()
   @IsNotEmpty()
   database: string;
+
+  @ApiProperty({ description: 'company Id ' })
+  @IsNumber()
+  @IsNotEmpty()
+  company_id: number;
 }

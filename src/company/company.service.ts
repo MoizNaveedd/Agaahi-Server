@@ -8,11 +8,14 @@ import { HashText } from 'src/shared/helpers/UtilHelper';
 import { IEmployee } from 'src/shared/interfaces/IEmployee.interface';
 import Role from 'src/shared/enums/role-ims.enum';
 import { EmployeeService } from 'src/employee/employee.service';
+import { CompanyRoleModel } from 'src/role/entity/company-role.entity';
+import { CompanyRoleRepository } from 'src/role/repository/company-role.repository';
 
 @Injectable()
 export class CompanyService {
     constructor(private companyRepository: CompanyRepository,
       private employeeService: EmployeeService,
+      private companyRoleRepository: CompanyRoleRepository,
     ){}
 
     public async RegisterCompany(data: RegisterCompanyDto){
@@ -43,6 +46,13 @@ export class CompanyService {
     };
 
     await this.employeeService.CreateEmployee(employeeData);
+
+    const companyRole = new CompanyRoleModel();
+    companyRole.company_id = companyModel.id;
+    companyRole.role_id = Role.Owner;
+
+    await this.companyRoleRepository.Save(companyRole);
+
     // await this.mailOwnerDetails(employeeData);
 
     // this.SendVerificationCode({

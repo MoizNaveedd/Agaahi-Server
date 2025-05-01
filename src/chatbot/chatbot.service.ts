@@ -115,7 +115,7 @@ public async SendMessage(
 ) {
   try {
     const [employeeRole, conversation] = await Promise.all([
-      this.roleService.GetCompanyRoleDetails(user.role_id, user),
+      this.roleService.GetCompanyRoleDetails(user.role_id, user.company_id),
       this.getOrCreateConversationv2(userPrompt, user),
     ]);
 
