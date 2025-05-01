@@ -40,7 +40,7 @@ export class DashboardService {
     try {
       const employeeRole = await this.roleService.GetCompanyRoleDetails(
         user.role_id,
-        user,
+        user.company_id,
       );
 
       // Step 1: Call external API with user prompt and chart ID

@@ -11,7 +11,7 @@ export class DatabaseValidatorController {
 
   // @Authorized()
   @Post('verify')
-  async verifyDatabase(@Body() connectionDetails: DatabaseConnectionDto, @CurrentUser() user: IRedisUserModel) {
+  async verifyDatabase(@Body() connectionDetails: DatabaseConnectionDto) {
     const isValid = await this.databaseValidatorService.verifyDatabaseConnection(connectionDetails);
     return { success: isValid, message: isValid ? 'Database connection successful' : 'Failed to connect to database' };
   }
