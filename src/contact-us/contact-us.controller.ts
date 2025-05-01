@@ -11,8 +11,8 @@ export class ContactUsController {
     constructor(private readonly contactUsService: ContactUsService) {}
 
     @Post()
-    async createContactUs(@Body() contactUsDto: ContactUsDto, @CurrentUser() user: IRedisUserModel) {
+    async createContactUs(@Body() contactUsDto: ContactUsDto) {
         // Logic to handle the creation of a contact us message
-        return this.contactUsService.createContactUs(contactUsDto, user);
+        return this.contactUsService.createContactUs(contactUsDto);
     }
 }

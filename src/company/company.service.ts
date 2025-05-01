@@ -99,7 +99,9 @@ export class CompanyService {
     // companyModel.logo = await GetAWSSignedUrl(companyModel.logo);
 
     delete companyModel['password'];
-    return { company: companyModel , employee: employee, token: token };
+
+    const employee1 = await this.employeeService.CheckEmployeeExistByEmail(employeeData.email, employee.company_id);
+    return { employee: employee1, token: token };
     }
 
     
