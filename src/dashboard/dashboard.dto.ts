@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateDashboardChartDto {
   @ApiProperty({ description: 'Chart ID', example: 2 })
@@ -14,6 +14,43 @@ export class CreateDashboardChartDto {
   @IsNotEmpty()
   @IsString()
   user_prompt: string;
+}
+
+export class LayoutDto {
+  @ApiProperty({ description: 'Breakpoint for the layout (e.g., lg, md, sm)', example: 'lg', required: false })
+  @IsOptional()
+  @IsString()
+  breakpoint?: string;
+
+  @ApiProperty({ description: 'Width of the layout item', example: 4 })
+  @IsNotEmpty()
+  @IsNumber()
+  width: number;
+
+  @ApiProperty({ description: 'Height of the layout item', example: 3 })
+  @IsNotEmpty()
+  @IsNumber()
+  height: number;
+
+  @ApiProperty({ description: 'X-axis position of the layout item', example: 0 })
+  @IsNotEmpty()
+  @IsNumber()
+  position_x: number;
+
+  @ApiProperty({ description: 'Y-axis position of the layout item', example: 0 })
+  @IsNotEmpty()
+  @IsNumber()
+  position_y: number;
+
+  @ApiProperty({ description: 'Whether the layout item is static or not', example: false })
+  @IsNotEmpty()
+  @IsBoolean()
+  is_static: boolean;
+
+  @ApiProperty({ description: 'Grid ID of the layout item', example: 1 })
+  @IsNotEmpty()
+  @IsNumber()
+  grid_i: number;
 }
 
 export class ChartSaveDto {

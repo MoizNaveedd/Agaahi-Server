@@ -32,14 +32,14 @@ interface ChartSaveDto {
   // Add other properties as needed
 }
 
-interface LayoutDto {
+export interface LayoutDto {
   breakpoint?: string;
   width: number;
   height: number;
   position_x: number;
   position_y: number;
   is_static: boolean;
-  chart_id: number;
+  grid_i: number;
 }
 
 @Injectable()
@@ -280,8 +280,36 @@ export class DashboardService {
   // Additional helper methods to get and update layouts
   public async getLayoutsForEmployee(employeeId: number, breakpoint: string = 'lg') {
     const layouts = await this.dashboardLayoutRepository.GetLayoutByEmployeeId(employeeId);
-    
+
     return layouts;
+  }
+
+  public async DeleteChart(layoutId: number, employeeId: number): Promise<boolean> {
+    const layput =  await this.dashboardLayoutRepository.FindOne({
+      employee_id: employeeId,
+      id: layoutId,
+    });
+
+    if (!layput) {
+      throw new BadRequestException('Layout not found');
+    }
+
+
+    const [result,] = await Promise.all([this.dashboardLayoutRepository.Delete({
+      employee_id: employeeId,
+      id: layoutId,
+    },true), 
+    this.dashboardChartsRepository.Delete({
+      employee_id: employeeId,
+      id: layput.chart_id,},true)
+  ]);
+
+    // Check if the deletion was successful
+    if (result.affected == 0) {
+      throw new BadRequestException('Layout not found or deletion failed');
+    }
+
+    return true;
   }
 
   public async updateLayoutById(employeeId: number, layoutId: number, layout: LayoutDto): Promise<boolean> {
@@ -294,6 +322,7 @@ export class DashboardService {
         position_x: layout.position_x,
         position_y: layout.position_y,
         is_static: layout.is_static,
+        grid_i: layout.grid_i,
         breakpoint: layout.breakpoint || 'lg',
       },
     );

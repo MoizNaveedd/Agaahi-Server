@@ -39,6 +39,7 @@ export class DashboardlayoutRepository extends BaseRepository<DashboardLayoutMod
       .leftJoin('dashboard_layout.chart', 'chart')
 
       .where('dashboard_layout.employee_id = :employeeId', { employeeId })
+      .andWhere('dashboard_layout.is_deleted = 0')
       .orderBy('dashboard_layout.grid_i', 'ASC');
 
     const result = await query.getMany();

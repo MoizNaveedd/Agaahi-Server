@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
-import { ChartSaveDto, CreateDashboardChartDto } from './dashboard.dto';
+import { ChartSaveDto, CreateDashboardChartDto, LayoutDto } from './dashboard.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import { DashboardLayoutService, LayoutsData } from './dashboard-layout.service';
@@ -37,15 +37,26 @@ export class DashboardController {
     return this.dashboardService.getLayoutsForEmployee(user.employee_id);
   }
 
-  // @Authorized()
-  // @Put()
-  // async updateLayout(
-  //   @CurrentUser() user: IRedisUserModel,
-  //   @Body() layouts: LayoutsData,
-  // ) {
-  //   await this.dashboardLayoutService.saveLayout(user.employee_id, layouts);
-  //   return { success: true };
-  // }
+  @Authorized()
+  @Put('/dashboard-layout/:layoutId')
+  async updateLayout(
+    @CurrentUser() user: IRedisUserModel,
+    @Body() data: LayoutDto,
+    @Param('layoutId') layoutId: number,
+  ) {
+    await this.dashboardService.updateLayoutById(user.employee_id, layoutId, data);
+    return { success: true };
+  }
+
+  @Authorized()
+  @Delete('/dashboard-layout/:layoutId')
+  async deleteLayout(
+    @CurrentUser() user: IRedisUserModel,
+    @Param('layoutId') layoutId: number,
+  ) {
+    await this.dashboardService.DeleteChart(layoutId,user.employee_id);
+    return { success: true };
+  }
 
   // @Authorized()
   // @Post('/chart/:chartId')
