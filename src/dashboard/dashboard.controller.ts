@@ -38,6 +38,12 @@ export class DashboardController {
   }
 
   @Authorized()
+  @Get('/dashboard-data')
+  async GetDashboardData(@CurrentUser() user: IRedisUserModel,) {
+    return this.dashboardService.GetDashboardDataForEmployee(user);
+  }
+
+  @Authorized()
   @Put('/dashboard-layout/:layoutId')
   async updateLayout(
     @CurrentUser() user: IRedisUserModel,

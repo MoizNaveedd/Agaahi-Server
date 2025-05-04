@@ -64,6 +64,8 @@ export class DashboardLayoutModel extends PostgresBaseModel {
   })
   grid_i: number;
 
+  data: any[];
+
   @ManyToOne(() => EmployeeModel, (employee) => employee.dashboard_layout, {
     onDelete: 'CASCADE',
   })
