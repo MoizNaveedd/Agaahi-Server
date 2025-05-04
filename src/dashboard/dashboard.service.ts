@@ -15,6 +15,7 @@ import {
   ChartAnalysisResponse,
   // ChartSaveDto,
   CreateDashboardChartDto,
+  LayoutArrayDto,
 } from './dashboard.dto';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
 import { RoleService } from 'src/role/role.service';
@@ -232,8 +233,8 @@ export class DashboardService {
     const savedChart = await this.dashboardChartsRepository.Save(dashboard);
 
     // Now save the layout for this chart
-    const defaultWidth = 8;
-    const defaultHeight = 8;
+    const defaultWidth = 6;
+    const defaultHeight = 4;
     await this.SaveChartLayout(
       savedChart.id,
       user.employee_id,
@@ -421,4 +422,63 @@ export class DashboardService {
   
     return true;
   }
+  public async updateAllLayoutsForEmployee(
+    employeeId: number,
+    layoutDtos: LayoutArrayDto,
+  ): Promise<DashboardLayoutModel[]> {
+    // Step 1: Fetch existing layouts with related charts
+    const existingLayouts = await this.dashboardLayoutRepository.Find(
+      { employee_id: employeeId },
+      null,
+      ['chart']
+    );
+  
+    console.log(layoutDtos)
+    // Step 2: Delete existing charts and layouts
+    for (const layout of existingLayouts) {
+      if (layout.chart?.id) {
+        await this.dashboardChartsRepository.Delete(layout.chart.id, true);
+      }
+      await this.dashboardLayoutRepository.Delete(layout.id, true);
+    }
+  
+    // Step 3: Normalize DTO input
+    const normalizedDtos = layoutDtos.layouts || [];
+    const savedLayouts: DashboardLayoutModel[] = [];
+  // console.log(normalizedDtos[0])
+    for (const dto of normalizedDtos) {
+    console.log("her",dto)      
+      // Create ChartModel using `new`
+      const chart = new DashboardChartsModel();
+      chart.x_axis = dto.chart.x_axis;
+      chart.y_axis = dto.chart.y_axis;
+      chart.sql_query = dto.chart.sql_query;
+      chart.meta_info = dto.chart.meta_info;
+      chart.chart_id = dto.chart.chart_id;
+      chart.employee_id = employeeId;
+  
+      const savedChart = await this.dashboardChartsRepository.Save(chart);
+  
+      // Create LayoutModel using `new`
+      const layout = new DashboardLayoutModel();
+      layout.width = dto.width;
+      layout.height = dto.height;
+      layout.position_x = dto.position_x;
+      layout.position_y = dto.position_y;
+      layout.is_static = dto.is_static;
+      layout.grid_i = dto.grid_i;
+      layout.breakpoint = dto.breakpoint || 'lg';
+      layout.employee_id = employeeId;
+      layout.chart_id = savedChart.id;
+  
+      const savedLayout = await this.dashboardLayoutRepository.Save(layout);
+  
+      // Attach chart to layout for return
+      savedLayout.chart = savedChart;
+      savedLayouts.push(savedLayout);
+    }
+  
+    return savedLayouts;
+  }
+  
 }
