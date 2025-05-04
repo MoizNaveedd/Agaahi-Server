@@ -38,13 +38,13 @@ export class ValidateAccountDto {
 }
 
 export class AdminLoginDto extends ValidateAccountDto {
-  @ApiProperty({
-    description: '6-digit MFA code',
-    example: '123456',
-  })
-  // @IsNotEmpty()
-  // @Length(6, 6)
-  // mfa_code: string;
+  // @ApiProperty({
+  //   description: '6-digit MFA code',
+  //   example: '123456',
+  // })
+  // // @IsNotEmpty()
+  // // @Length(6, 6)
+  // // mfa_code: string;
 }
 
 export class GetAdminsDto extends PaginationParam {
