@@ -1,6 +1,7 @@
 import { EmployeeModel } from "src/employee/entity/employee.entity";
 import { PostgresBaseModel } from "src/shared/database/PostgresModel";
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
+import { DashboardLayoutModel } from "./dashboard-layout.entity";
 
 @Entity('dashboard_charts')
 export class DashboardChartsModel extends PostgresBaseModel {
@@ -53,4 +54,10 @@ export class DashboardChartsModel extends PostgresBaseModel {
   })
   @JoinColumn({ name: 'employee_id', referencedColumnName: 'id' })
   employee: EmployeeModel;
+
+  @OneToOne(() => DashboardLayoutModel, (layout) => layout.chart, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  dashboard_layout: DashboardLayoutModel;
 }

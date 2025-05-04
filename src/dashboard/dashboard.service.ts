@@ -13,13 +13,34 @@ import { DatabasevalidatorService } from 'src/database-validator/database-valida
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import {
   ChartAnalysisResponse,
-  ChartSaveDto,
+  // ChartSaveDto,
   CreateDashboardChartDto,
 } from './dashboard.dto';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
 import { RoleService } from 'src/role/role.service';
 import { DashboardChartsModel } from './entity/dashboard.entity';
 import { DashboardChartsRepository } from './dashboard.repository';
+import { DashboardlayoutRepository } from './entity/dashboard-layout.repository';
+import { DashboardLayoutModel } from './entity/dashboard-layout.entity';
+
+
+interface ChartSaveDto {
+  chart_id: number;
+  sql_query: string;
+  x_axis: string;
+  y_axis: any[];
+  // Add other properties as needed
+}
+
+interface LayoutDto {
+  breakpoint?: string;
+  width: number;
+  height: number;
+  position_x: number;
+  position_y: number;
+  is_static: boolean;
+  chart_id: number;
+}
 
 @Injectable()
 export class DashboardService {
@@ -31,6 +52,7 @@ export class DashboardService {
     private readonly databaseConnectionService: DatabasevalidatorService,
     private readonly roleService: RoleService,
     private readonly dashboardChartsRepository: DashboardChartsRepository,
+    private readonly dashboardLayoutRepository: DashboardlayoutRepository,
   ) {}
 
   public async GenerateChartData(
@@ -90,18 +112,18 @@ export class DashboardService {
     }
   }
 
-  public async SaveChartData(data: ChartSaveDto, user: IRedisUserModel) {
-    const dashboard = new DashboardChartsModel();
-    dashboard.chart_id = data.chart_id;
-    dashboard.sql_query = data.sql_query;
-    dashboard.x_axis = data.x_axis;
-    dashboard.y_axis = JSON.stringify(data.y_axis);
-    dashboard.meta_info = JSON.stringify(data);
-    dashboard.employee_id = user.employee_id;
-    dashboard.meta_info = JSON.stringify(data);
+  // public async SaveChartData(data: ChartSaveDto, user: IRedisUserModel) {
+  //   const dashboard = new DashboardChartsModel();
+  //   dashboard.chart_id = data.chart_id;
+  //   dashboard.sql_query = data.sql_query;
+  //   dashboard.x_axis = data.x_axis;
+  //   dashboard.y_axis = JSON.stringify(data.y_axis);
+  //   dashboard.meta_info = JSON.stringify(data);
+  //   dashboard.employee_id = user.employee_id;
+  //   dashboard.meta_info = JSON.stringify(data);
 
-    return await this.dashboardChartsRepository.Save(dashboard);
-  }
+  //   return await this.dashboardChartsRepository.Save(dashboard);
+  // }
 
   private async callExternalApi(
     userPrompt: string,
@@ -191,5 +213,96 @@ export class DashboardService {
       },
     };
     return formattedData;
+  }
+
+
+  async SaveChartData(data: ChartSaveDto, user: IRedisUserModel) {
+    const dashboard = new DashboardChartsModel();
+    dashboard.chart_id = data.chart_id;
+    dashboard.sql_query = data.sql_query;
+    dashboard.x_axis = data.x_axis;
+    dashboard.y_axis = JSON.stringify(data.y_axis);
+    dashboard.meta_info = JSON.stringify(data);
+    dashboard.employee_id = user.employee_id;
+    
+    // Save the chart data
+    const savedChart = await this.dashboardChartsRepository.Save(dashboard);
+    
+    // Now save the layout for this chart
+    const defaultWidth = 8;
+    const defaultHeight = 8;
+    await this.SaveChartLayout(savedChart.id, user.employee_id, defaultWidth, defaultHeight);
+    
+    return savedChart;
+  }
+
+  async SaveChartLayout(chartId: number, employeeId: number, width: number, height: number) {
+    // Fetch all existing layouts for this employee
+    const existingLayouts = await this.dashboardLayoutRepository.Find({
+      employee_id: employeeId, breakpoint: 'lg' 
+    });
+
+    // Convert to format similar to defaultLayouts
+    const layouts = existingLayouts.map(layout => ({
+      w: layout.width,
+      h: layout.height,
+      x: layout.position_x,
+      y: layout.position_y,
+      i: layout.chart_id.toString(),
+      static: layout.is_static,
+    }));
+
+    const nextLayoutId = layouts.length.toString();
+
+    // Get the new layout position
+    const newLayout = this.getNewGraphLayout(layouts, nextLayoutId, width, height);
+  
+    // Save the new layout to database
+    const dashboardLayout = new DashboardLayoutModel();
+    dashboardLayout.breakpoint = 'lg'; // Default breakpoint
+    dashboardLayout.width = newLayout.w;
+    dashboardLayout.height = newLayout.h;
+    dashboardLayout.position_x = newLayout.x;
+    dashboardLayout.position_y = newLayout.y;
+    dashboardLayout.is_static = newLayout.static;
+    dashboardLayout.employee_id = employeeId;
+    dashboardLayout.grid_i = newLayout.i;
+    dashboardLayout.chart_id = chartId;
+
+    return await this.dashboardLayoutRepository.Save(dashboardLayout);
+  }
+
+  private getNewGraphLayout(layouts: any[], graphId: string, width: number, height: number) {
+    const maxY = layouts.reduce((max, layout) => Math.max(max, layout.y + layout.h), 0);
+    return { w: width, h: height, x: 0, y: maxY, i: +graphId, static: false };
+  }
+
+  // Additional helper methods to get and update layouts
+  public async getLayoutsForEmployee(employeeId: number, breakpoint: string = 'lg') {
+    const layouts = await this.dashboardLayoutRepository.GetLayoutByEmployeeId(employeeId);
+    
+    return layouts;
+  }
+
+  public async updateLayoutById(employeeId: number, layoutId: number, layout: LayoutDto): Promise<boolean> {
+    // Update the layout with the given layout ID
+    const result = await this.dashboardLayoutRepository.Update(
+      { employee_id: employeeId, id: layoutId }, // Match by employee ID and layout ID
+      {
+        width: layout.width,
+        height: layout.height,
+        position_x: layout.position_x,
+        position_y: layout.position_y,
+        is_static: layout.is_static,
+        breakpoint: layout.breakpoint || 'lg',
+      },
+    );
+  
+    // Check if the update was successful
+    if (result.affected == 0) {
+      throw new BadRequestException('Layout not found or update failed');
+    }
+  
+    return true;
   }
 }

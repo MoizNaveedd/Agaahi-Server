@@ -13,6 +13,7 @@ import { RoleModel } from 'src/role/entity/role.entity';
 import { CompanyModel } from 'src/company/entity/company.entity';
 import {  ConversationModel } from 'src/chatbot/entity/chatbot-conversations.entity';
 import { DashboardChartsModel } from 'src/dashboard/entity/dashboard.entity';
+import { DashboardLayoutModel } from 'src/dashboard/entity/dashboard-layout.entity';
 
 @Entity(`employee`)
 export class EmployeeModel extends PostgresBaseModel {
@@ -170,4 +171,8 @@ export class EmployeeModel extends PostgresBaseModel {
 
   @OneToMany(() => DashboardChartsModel, (dashboard) => dashboard.employee)
   dashboard: DashboardChartsModel[];
+
+  @OneToMany(() => DashboardLayoutModel, (dashboard) => dashboard.employee)
+  dashboard_layout: DashboardLayoutModel[];
+
 }
