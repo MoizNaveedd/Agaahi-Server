@@ -433,7 +433,6 @@ export class DashboardService {
       ['chart']
     );
   
-    console.log(layoutDtos)
     // Step 2: Delete existing charts and layouts
     for (const layout of existingLayouts) {
       if (layout.chart?.id) {
@@ -447,7 +446,6 @@ export class DashboardService {
     const savedLayouts: DashboardLayoutModel[] = [];
   // console.log(normalizedDtos[0])
     for (const dto of normalizedDtos) {
-    console.log("her",dto)      
       // Create ChartModel using `new`
       const chart = new DashboardChartsModel();
       chart.x_axis = dto.chart.x_axis;
