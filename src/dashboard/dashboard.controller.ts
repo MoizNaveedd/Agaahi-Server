@@ -4,7 +4,6 @@ import { Authorized } from 'src/shared/decorators/authorized.decorator';
 import { ChartSaveDto, CreateDashboardChartDto, LayoutDto } from './dashboard.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
-import { DashboardLayoutService, LayoutsData } from './dashboard-layout.service';
 
 @Controller('dashboard')
 export class DashboardController {
