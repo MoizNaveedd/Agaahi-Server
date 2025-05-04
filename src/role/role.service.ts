@@ -30,7 +30,7 @@ export class RoleService {
 
   public async GetCompanyRole(user: IRedisUserModel, params) {
     return await this.roleRepository.Find(
-      { is_deleted: 0 },)
+      { is_deleted: 0, company_role: { company_id: user.company_id } },null,['company_role'])
   }
 
   public async GetRoleById(roleId: number, user?: IRedisUserModel) {
