@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class CreateDashboardChartDto {
   @ApiProperty({ description: 'Chart ID', example: 2 })
@@ -14,6 +15,29 @@ export class CreateDashboardChartDto {
   @IsNotEmpty()
   @IsString()
   user_prompt: string;
+}
+
+
+export class ChartDto {
+  @ApiProperty({ description: 'x-Axis' })
+  @IsString()
+  x_axis: string;
+
+  @ApiProperty({ description: 'y-Axis' })
+  @IsString()
+  y_axis: string;
+
+  @ApiProperty({ description: 'SQL query' })
+  @IsString()
+  sql_query: string;
+
+  @ApiProperty({ description: 'meta info' })
+  @IsString()
+  meta_info: string;
+
+  @ApiProperty({ description: 'chart ID' })
+  @IsInt()
+  chart_id: number;
 }
 
 export class LayoutDto {
@@ -51,8 +75,23 @@ export class LayoutDto {
   @IsNotEmpty()
   @IsNumber()
   grid_i: number;
+
+  @ApiProperty({ type: ChartDto })
+  @ValidateNested()
+  @Type(() => ChartDto)
+  chart: ChartDto;
 }
 
+export class LayoutArrayDto {
+  @ApiProperty({
+    description: 'Array of layout objects',
+    type: LayoutDto,
+    isArray: true,
+  })
+  @ValidateNested({ each: true })
+  @Type(() => LayoutDto)
+  layouts: LayoutDto[];
+}
 export class ChartSaveDto {
   @ApiProperty({ description: 'Chart ID', example: 2 })
   @IsNotEmpty()

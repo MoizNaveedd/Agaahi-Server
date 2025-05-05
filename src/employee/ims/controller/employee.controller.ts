@@ -48,7 +48,7 @@ import { PortalType } from 'src/shared/enums/portal.enum';
 // import { FileInterceptor } from '@nestjs/platform-express';
 // import { S3Prefix } from 'src/shared/enums/s3-prefix.enum';
 
-@ApiTags('Employee - IMS')
+@ApiTags('Employee')
 @Controller('employee')
 export class EmployeeController {
   constructor(

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
-import { ChartSaveDto, CreateDashboardChartDto, LayoutDto } from './dashboard.dto';
+import { ChartSaveDto, CreateDashboardChartDto, LayoutArrayDto, LayoutDto } from './dashboard.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 
@@ -43,14 +43,12 @@ export class DashboardController {
   }
 
   @Authorized()
-  @Put('/dashboard-layout/:layoutId')
+  @Put('/dashboard-layout')
   async updateLayout(
     @CurrentUser() user: IRedisUserModel,
-    @Body() data: LayoutDto,
-    @Param('layoutId') layoutId: number,
+    @Body() data: LayoutArrayDto,
   ) {
-    await this.dashboardService.updateLayoutById(user.employee_id, layoutId, data);
-    return { success: true };
+    return await this.dashboardService.updateAllLayoutsForEmployee(user.employee_id,data);
   }
 
   @Authorized()
