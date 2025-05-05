@@ -9,13 +9,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { RoleModule } from 'src/role/role.module';
-// import { EmployeeStoreModel } from './entity/employee-store.entity';
-// import { EmployeeStoreRepository } from './repository/employee-store.repository';
-// import { StoreModule } from 'src/store/store.module';
-// import { PosDeviceModule } from 'src/pos-device/pos-device.module';
-// import { EmployeePosController } from './pos/controller/employee.controller';
-// import { AdminModule } from 'src/admin/admin.module';
-// import { EmployeeControllerAdmin } from './admin/controller/employee.controller';
+import { EmployeeControllerAdmin } from './admin/controller/employee.controller';
+import { AdminModule } from 'src/admin/admin.module';
 
 @Module({
   imports: [
@@ -30,8 +25,9 @@ import { RoleModule } from 'src/role/role.module';
     }),
     SharedModule,
     forwardRef(() => RoleModule),
+    AdminModule,
   ],
-  controllers: [EmployeeController],
+  controllers: [EmployeeController, EmployeeControllerAdmin],
   providers: [
     EmployeeRepository,
     EmployeeService,

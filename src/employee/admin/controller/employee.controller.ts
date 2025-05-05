@@ -8,19 +8,25 @@
 // } from '../dto/employee.dto';
 // import { AuthService } from 'src/employee/auth.service';
 
-// @ApiTags('employee - Admin')
-// @Controller('admin/employee')
-// export class EmployeeControllerAdmin {
-//   constructor(
-//     private readonly employeeService: EmployeeService,
-//     private readonly authService: AuthService,
-//   ) {}
+import { Controller, Get, Query } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
+import { EmployeeService } from "src/employee/employee.service";
+import { GetEmployeeAdminDto } from "../dto/employee.dto";
+import { AuthorizedAdmin } from "src/shared/decorators/authorized.decorator";
 
-//   @AuthorizedAdmin()
-//   @Get()
-//   async GetEmployees(@Query() data: GetEmployeeAdminDto) {
-//     return this.employeeService.GetAllEmployees(data);
-//   }
+@ApiTags('employee - Admin')
+@Controller('admin/employee')
+export class EmployeeControllerAdmin {
+  constructor(
+    private readonly employeeService: EmployeeService,
+    // private readonly authService: AuthService,
+  ) {}
+
+  @AuthorizedAdmin()
+  @Get()
+  async GetEmployees(@Query() data: GetEmployeeAdminDto) {
+    return this.employeeService.GetAllEmployees(data);
+  }
 
 //   @AuthorizedAdmin()
 //   @Get('/:employeeId([0-9]+)')
@@ -44,4 +50,4 @@
 //   async MfaRevoke(@Param('employeeId') employeeId: number) {
 //     return await this.authService.MfaRevoke(employeeId);
 //   }
-// }
+}

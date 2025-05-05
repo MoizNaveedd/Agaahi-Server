@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -99,21 +100,24 @@ export class AddEmployeeDto {
 }
 
 export class GetEmployeeDto extends PaginationParam {
+  @ApiProperty({ description: 'Role ID of the employee', example: 1, required: false })
   @IsOptional()
   @IsNumber()
   role_id?: number;
 
+  @ApiProperty({ description: 'Status of the employee (true for active, false for inactive)', example: true, required: false })
   @IsOptional()
   @ToBoolean()
   status?: boolean;
 
+  @ApiProperty({ description: 'Name of the employee', example: 'John Doe', required: false })
   @IsOptional()
   @IsString()
   name?: string;
 
-  @IsOptional()
-  @IsNumber()
-  store_id?: number;
+  // @IsOptional()
+  // @IsNumber()
+  // store_id?: number;
 }
 
 export class UpdateMeDtoIMS {
