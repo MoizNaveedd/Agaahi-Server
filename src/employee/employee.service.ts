@@ -427,10 +427,14 @@ export class EmployeeService {
           'salary',
           'gender',
           'image',
+          'company.id',
+          'company.company_role.id',
+          'company.company_role.table_permission',
         ],
         relations: [
           'role',
           'company',
+          'company.company_role'
         ],
       },
     );
