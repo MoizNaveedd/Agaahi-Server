@@ -21,7 +21,7 @@ export class AdminController {
   }
 
   @AuthorizedAdmin()
-  @Get("/logout")
+  @Post("/logout")
   async Logout(
     @CurrentAdmin() admin: IRedisAdminModel,
   ) {
