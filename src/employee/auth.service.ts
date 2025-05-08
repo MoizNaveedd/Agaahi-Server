@@ -240,23 +240,23 @@ export class AuthService {
     const userLanguage = data.user_language ?? Language.English;
     const employee = await this.validateUserCredentials(data, userLanguage);
 
-    const domain = data.email.split('@')[1];
-    let isVerified = false;
-    if (
-      (['mailinator.com', 'yopmail.com'].includes(domain) &&
-        appEnv('ENVIRONMENT') == 'development') ||
-      true
-    ) {
-      isVerified = true;
-    } else {
-      // isVerified = await this.VerifyMFACode(data.mfa_code, employee.id);
-    }
+    // const domain = data.email.split('@')[1];
+    // let isVerified = false;
+    // if (
+    //   (['mailinator.com', 'yopmail.com'].includes(domain) &&
+    //     appEnv('ENVIRONMENT') == 'development') ||
+    //   true
+    // ) {
+    //   isVerified = true;
+    // } else {
+    //   // isVerified = await this.VerifyMFACode(data.mfa_code, employee.id);
+    // }
 
-    if (!isVerified) {
-      throw new BadRequestException(
-        ErrorMessageConstant[employee.language].MFACodeInvalid,
-      );
-    }
+    // if (!isVerified) {
+    //   throw new BadRequestException(
+    //     ErrorMessageConstant[employee.language].MFACodeInvalid,
+    //   );
+    // }
 
     const [employeeKey] = await this.redisRepository.GetKeys(
       `employee-ims-${employee.id}`,

@@ -42,9 +42,9 @@ export class ValidateEmailDto extends LanguageDto {
 
 
 export class LoginDto extends ValidateEmailDto {
-  @IsNotEmpty()
-  @Length(6, 6)
-  mfa_code: string;
+  // @IsNotEmpty()
+  // @Length(6, 6)
+  // mfa_code: string;
 }
 
 export class AddEmployeeDto {
