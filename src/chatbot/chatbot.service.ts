@@ -14,7 +14,7 @@ import axios from 'axios';
 
 @Injectable()
 export class ChatbotService {
-  private fastApiUrl = `${appEnv('CHAT_BOT_URL')}query`; // URL of FastAPI service
+  private fastApiUrl = `${appEnv('CHAT_BOT_URL')}v1/query`; // URL of FastAPI service
   constructor(
     private readonly httpService: HttpService,
     private readonly roleService: RoleService,
