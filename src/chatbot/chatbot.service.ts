@@ -14,7 +14,7 @@ import axios from 'axios';
 
 @Injectable()
 export class ChatbotService {
-  private fastApiUrl = `${appEnv('CHAT_BOT_URL')}v1/query`; // URL of FastAPI service
+  private fastApiUrl = `${appEnv('CHAT_BOT_URL')}query`; // URL of FastAPI service
   constructor(
     private readonly httpService: HttpService,
     private readonly roleService: RoleService,
@@ -165,7 +165,6 @@ public async SendMessage(
             await this.UpdateCoversationById(conversation.id, { name: nameResponse.data.conversation_name} as RenameConversation);
           }
         }
-        console.log("here")
         // Save chat history
         await this.chatHistoryRepository.SaveChatHistory({
           conversation_id: conversation.id,
