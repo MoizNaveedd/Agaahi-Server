@@ -3,7 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
-import { ChatBotDto, RenameConversation } from './chatbot.dto';
+import { ChatBotDto, ChatPublicBotDto, RenameConversation } from './chatbot.dto';
 import { RoleService } from 'src/role/role.service';
 import Role from 'src/shared/enums/role-ims.enum';
 import { ChatHistoryRepository } from './chatbot.repository';
@@ -23,6 +23,33 @@ export class ChatbotService {
     private readonly logger: Logger,
 
   ) {}
+
+  public async PublicChat(data: ChatPublicBotDto) {
+    let chatbotResponse: string;
+    let base64: string;
+    let format: string;
+    try {
+      // console.log(`${this.fastApiUrl}`, payload)
+      const response = await axios.post(`${appEnv('CHAT_BOT_URL')}knowledge-base/query`, { question: data.message});
+      console.log(response.data.response); // Optional debug log
+      if (!response?.data?.response) {
+        throw new Error('Invalid response from chatbot server');
+      }
+
+
+      chatbotResponse = response.data.response; // Assuming the structure is: { response: "..." }
+      base64 = response.data.base64;
+      format = response.data.format;
+
+      return {
+        response: chatbotResponse,
+        base64: base64 ?? null,
+        format: format ?? null,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to communicate with chatbot server');
+    }
+  }
 
   async checkChatbotConnection(): Promise<void> {
     try {
@@ -134,9 +161,9 @@ public async SendMessage(
     let base64: string;
     let format: string;
     try {
-      console.log(`${this.fastApiUrl}`, payload)
+      // console.log(`${this.fastApiUrl}`, payload)
       const response = await axios.post(`${this.fastApiUrl}`, payload);
-      console.log(response.data.response); // Optional debug log
+      // console.log(response.data.response); // Optional debug log
       if (!response?.data?.response) {
         throw new Error('Invalid response from chatbot server');
       }

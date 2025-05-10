@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, Query, Param, Put, Delete } from '@nestjs/common';
 import { ChatbotService } from './chatbot.service';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
-import { ChatBotDto, RenameConversation } from './chatbot.dto';
+import { ChatBotDto, ChatPublicBotDto, RenameConversation } from './chatbot.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import { GetChatHistoryDto } from './dto/chatbot.dto';
@@ -36,6 +36,11 @@ export class ChatbotController {
       conversationId,
       user,
     );
+  }
+
+  @Post('public-chat')
+  async PublicChat(@Body() data: ChatPublicBotDto) {
+    return await this.chatService.PublicChat(data);
   }
 
     

@@ -17,6 +17,12 @@ export class ChatBotDto {
     is_new?: boolean;
 }
 
+export class ChatPublicBotDto {
+    @ApiProperty({ example: "Hello, how many employees are there?" })
+    @IsString()
+    message: string;
+}
+
 export class RenameConversation {
     @ApiProperty({ example: "new name" })
     @IsString()
