@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException, ForbiddenException, ServiceUnavailableException, InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
@@ -141,57 +141,75 @@ public async SendMessage(
   user: IRedisUserModel,
 ) {
   try {
-    const [employeeRole, conversation] = await Promise.all([
-      this.roleService.GetCompanyRoleDetails(user.role_id, user.company_id),
-      this.getOrCreateConversationv2(userPrompt, user),
-    ]);
-
-    if (!employeeRole) {
-      throw new BadRequestException('Role has not been configured yet');
+    let employeeRole, conversation;
+    try {
+      [employeeRole, conversation] = await Promise.all([
+        this.roleService.GetCompanyRoleDetails(user.role_id, user.company_id),
+        this.getOrCreateConversationv2(userPrompt, user),
+      ]);
+    } catch (error) {
+      throw new BadRequestException(`Failed to fetch role details or conversation: ${error.message}`);
     }
 
+    // 3. Validate role and permissions
+    if (!employeeRole) {
+      throw new UnauthorizedException('Role not found');
+    }
+
+    if (!employeeRole?.table_permission || employeeRole?.table_permission?.length === 0) {
+      throw new ForbiddenException('Role has no table permissions configured');
+    }
+
+    // 4. Prepare payload for chatbot
     const payload = {
       user_prompt: userPrompt.message,
       role: employeeRole.role.name.toLowerCase(),
-      // allowed_tables: employeeRole.table_permission,
-      // history: conversation.chat_history,
+      allowed_tables: employeeRole.table_permission,
     };
 
-    let chatbotResponse: string;
-    let base64: string;
-    let format: string;
+    // 5. Make request to chatbot server
+    let chatbotResponse, base64, format;
     try {
-      // console.log(`${this.fastApiUrl}`, payload)
       const response = await axios.post(`${this.fastApiUrl}`, payload);
-      // console.log(response.data.response); // Optional debug log
+      
       if (!response?.data?.response) {
-        throw new Error('Invalid response from chatbot server');
+        throw new Error('Invalid response structure from chatbot server');
       }
 
-
-      chatbotResponse = response.data.response; // Assuming the structure is: { response: "..." }
+      chatbotResponse = response.data.response;
       base64 = response.data.base64;
       format = response.data.format;
-    } catch (error: any) {
-      console.error('Error while sending request to chatbot server:', error?.message || error);
-      throw new Error('Failed to communicate with chatbot server');
+    } catch (error) {
+      console.error('Chatbot server error:', error?.message || error);
+      throw new ServiceUnavailableException(
+        'Failed to communicate with chatbot server: ' + (error?.message || 'Unknown error')
+      );
     }
 
-    // Fire-and-forget block for background tasks
+    // 6. Handle background tasks
     setImmediate(async () => {
       try {
-        // If it's a new conversation or empty history, get a conversation name
-        if (conversation?.chat_history?.length == 0 || userPrompt.is_new) {
-          const nameResponse = await firstValueFrom(
-            this.httpService.post(`${appEnv('CHAT_BOT_URL')}conversation-name`, {
-              user_prompt: userPrompt.message,
-            }),
-          );
+        // Handle conversation naming for new conversations
+        if (conversation?.chat_history?.length === 0 || userPrompt.is_new) {
+          try {
+            const nameResponse = await firstValueFrom(
+              this.httpService.post(`${appEnv('CHAT_BOT_URL')}conversation-name`, {
+                user_prompt: userPrompt.message,
+              }),
+            );
 
-          if (nameResponse?.data?.conversation_name) {
-            await this.UpdateCoversationById(conversation.id, { name: nameResponse.data.conversation_name} as RenameConversation);
+            if (nameResponse?.data?.conversation_name) {
+              await this.UpdateCoversationById(
+                conversation.id, 
+                { name: nameResponse.data.conversation_name } as RenameConversation
+              );
+            }
+          } catch (nameError) {
+            console.error('Failed to set conversation name:', nameError);
+            // Don't throw here as this is a background task
           }
         }
+
         // Save chat history
         await this.chatHistoryRepository.SaveChatHistory({
           conversation_id: conversation.id,
@@ -201,21 +219,32 @@ public async SendMessage(
           format: format,
         });
       } catch (backgroundError) {
-        console.error('Error in background operations:', backgroundError);
+        console.error('Background task error:', backgroundError);
+        // Don't throw here as these are background operations
       }
     });
 
-
+    // 7. Return response
     return {
       response: chatbotResponse,
       base64: base64 ?? null,
       format: format ?? null,
       conversation_id: conversation.id,
     };
-  } catch (error: any) {
-    console.error('Chatbot Service Error:', error?.message || error);
-    throw new BadRequestException(
-      `Failed to fetch response from chatbot: ${error?.message || error}`,
+
+  } catch (error) {
+    // Handle specific error types
+    if (error instanceof UnauthorizedException || 
+        error instanceof ForbiddenException || 
+        error instanceof BadRequestException ||
+        error instanceof ServiceUnavailableException) {
+      throw error;
+    }
+
+    // Log unexpected errors
+    console.error('Unexpected error in SendMessage:', error);
+    throw new InternalServerErrorException(
+      'An unexpected error occurred while processing your request'
     );
   }
 }
