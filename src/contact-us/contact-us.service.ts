@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ContactUsRepository } from './contact-us.repository';
-import { ContactUsDto } from './contact-us.dto';
+import { ContactUsDto, GetContactUsDto } from './contact-us.dto';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 import { ContactUsModel } from './entity/contact-us.entity';
 
@@ -21,5 +21,9 @@ export class ContactUsService {
         // contactUs.company_id = user.company_id || null; // Set company_id if provided, otherwise null
 
         return await this.contactUsRepository.Save(contactUs);
+    }
+
+    public async GetContactUsResponses(data: GetContactUsDto) {
+        return await this.contactUsRepository.GetContactUsResponses(data);
     }
 }

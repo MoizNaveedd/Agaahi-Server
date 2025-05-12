@@ -181,7 +181,7 @@ export class UpdateEmployeeLanguageDto {
   user_language: Language;
 }
 
-export class ForgotPasswordDto extends LanguageDto{
+export class ForgotPasswordDto {
   @IsNotEmpty()
   @IsEmail()
   @Transform(({ value }) => value.toLowerCase())

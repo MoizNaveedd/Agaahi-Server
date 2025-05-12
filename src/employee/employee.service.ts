@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { EmployeeRepository } from './repository/employee.repository';
 import { EmployeeModel } from './entity/employee.entity';
@@ -34,6 +35,7 @@ import { Not } from 'typeorm';
 import { UpdateEmployeeByAdminDto } from './admin/dto/employee.dto';
 import { RedisRepository } from 'src/shared/providers/redis.repository';
 import { RoleRepository } from 'src/role/repository/role.repository';
+import { CompanyRoleRepository } from 'src/role/repository/company-role.repository';
 @Injectable()
 export class EmployeeService {
   constructor(
@@ -43,6 +45,7 @@ export class EmployeeService {
     // private storeService: StoreService,
     private roleRepository: RoleRepository,
     private redisRepository: RedisRepository,
+    private companyRoleRepository: CompanyRoleRepository,
   ) {}
 
   // private async updateSession(
@@ -391,21 +394,20 @@ export class EmployeeService {
   //   return await this.employeeStoreRepository.SaveAll(employeeStore);
   // }
 
-  public async Me(
-    employee_id: number,
-  ): Promise<any> {
-    const employee = await this.employeeRepository.FindOne(
-        {
-          id: employee_id,
-          is_deleted: 0,
-          
-        },
-        { relations: ['role', 'company'] },
-      );
+  public async Me(employee_id: number): Promise<any> {
+    const employee = await this.employeeRepository.GetEmployeeDetails(employee_id);
+    
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
 
+    const companyRole = await this.companyRoleRepository.FindOne({
+      company_id: employee.company_id,
+      role_id: employee.role_id,
+    });
 
     delete employee.password;
-    return { employee };
+    return { employee, companyRole };
   }
 
   public async GetEmployeeById(employeeId: number, user?: IRedisUserModel) {

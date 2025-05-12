@@ -157,4 +157,28 @@ export class EmployeeRepository extends BaseRepository<EmployeeModel> {
     }
     return await employeeQuery.getOne();
   }
+
+  public async GetEmployeeDetails(employeeId: number): Promise<EmployeeModel> {
+    const query = this.Repository.createQueryBuilder('employee')
+      .select([
+        'employee.id',
+        'employee.name',
+        'employee.country_code',
+        'employee.phone_number',
+        'employee.email',
+        'employee.status',
+        'employee.image',
+        'employee.pin',
+        'employee.is_mfa_enabled',
+        'employee.gender',
+        'role',
+        'company',
+      ])
+      .leftJoin('employee.role', 'role')
+      .leftJoin('employee.company', 'company')
+      .where('employee.id = :employeeId', { employeeId })
+      .andWhere('employee.is_deleted = :is_deleted', { is_deleted: 0 });
+
+    return await query.getOne();
+  }
 }
