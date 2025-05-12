@@ -27,7 +27,7 @@ import {
 import { PortalType } from 'src/shared/enums/portal.enum';
 import { appEnv } from '../shared/helpers/EnvHelper';
 import { ConfigService } from '@nestjs/config';
-// import { MailService } from 'src/shared/providers/mail.service';
+import { MailService } from 'src/shared/providers/mail.service';
 import Role from 'src/shared/enums/role-ims.enum';
 // import { GetAWSSignedUrl } from 'src/shared/helpers/MediaHelper';
 // import * as moment from 'moment';
@@ -45,7 +45,7 @@ export class AuthService {
     // private cashierDeviceRepository: CashierDeviceRepository,
     // private posDeviceRepository: PosDeviceRepository,
     private configService: ConfigService,
-    // private mailService: MailService,
+    private mailService: MailService,
   ) {}
 
   public generateToken(
@@ -649,4 +649,180 @@ export class AuthService {
   //   }
   //   return true;
   // }
+
+  public async SendForgotPasswordOTP(email: string) {
+    try {
+      const employee = await this.employeeService.CheckEmployeeExistByEmail(email);
+      
+      if (!employee) {
+        throw new BadRequestException('No account found with this email address');
+      }
+
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      const emailReplacements = {
+        FullName: employee.name,
+        OTPCode: otpCode,
+      };
+
+      const mailOptions = {
+        to: email,
+        subject: '[Snad] Password Reset OTP',
+      };
+
+      await this.mailService.SendMail(
+        'forgot-password-otp.html',
+        emailReplacements,
+        mailOptions,
+      );
+
+      // Expire after 5 minutes
+      const expireAt = Math.floor(Date.now() / 1000) + 5 * 60;
+
+      await Promise.all([
+        this.redisRepository.Set(
+          `forgot-password-otp-${email}`,
+          otpCode,
+        ),
+        this.redisRepository.ExpireAt(
+          `forgot-password-otp-${email}`,
+          expireAt,
+        ),
+        this.SetOTPInfo(email),
+      ]);
+
+      return { message: 'OTP sent successfully' };
+    } catch (err) {
+      if (err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        'Something went wrong, please try again later.',
+      );
+    }
+  }
+
+  private async SetOTPInfo(email: string) {
+    const payload = {
+      email: email,
+      attempts: 0,
+      created_at: new Date().toISOString(),
+      expired: false,
+    };
+    await this.redisRepository.Set(
+      `forgot-password-otp-info-${email}`,
+      JSON.stringify(payload),
+    );
+    return payload;
+  }
+
+  private async GetOTPInfo(email: string) {
+    const otpInfo = await this.redisRepository.Get(
+      `forgot-password-otp-info-${email}`,
+    );
+    return JSON.parse(otpInfo);
+  }
+
+  public async VerifyForgotPasswordOTP(email: string, otp: string) {
+    const [storedOTP, otpInfo] = await Promise.all([
+      this.redisRepository.Get(`forgot-password-otp-${email}`),
+      this.GetOTPInfo(email),
+    ]);
+
+    if (!storedOTP || otpInfo.expired === true) {
+      throw new BadRequestException('OTP has expired');
+    }
+
+    if (storedOTP !== otp) {
+      // Update attempts count
+      const updatedInfo = {
+        ...otpInfo,
+        attempts: (otpInfo.attempts || 0) + 1,
+      };
+
+      // If max attempts reached, expire the OTP
+      if (updatedInfo.attempts >= 3) {
+        updatedInfo.expired = true;
+        await this.ExpireOTP(email);
+      }
+
+      await this.UpdateOTPInfo(email, updatedInfo);
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    // Generate a temporary token for password reset
+    const resetToken = this.jwtService.sign(
+      { email },
+      { expiresIn: '5m' }
+    );
+
+    // Mark OTP as used
+    await this.UpdateOTPInfo(email, {
+      ...otpInfo,
+      expired: true,
+    });
+
+    return { 
+      valid: true,
+      reset_token: resetToken
+    };
+  }
+
+  public async ResetPassword(email: string, resetToken: string, newPassword: string) {
+    try {
+      // Verify the reset token
+      const decoded = this.jwtService.verify(resetToken);
+      
+      if (decoded.email !== email) {
+        throw new BadRequestException('Invalid reset token');
+      }
+
+      const employee = await this.employeeService.CheckEmployeeExistByEmail(email);
+      
+      if (!employee) {
+        throw new BadRequestException('Employee not found');
+      }
+
+      // Hash the new password
+      const hashedPassword = await HashText(newPassword);
+
+      // Update password in database
+      await this.employeeRepository.Update(
+        { id: employee.id },
+        { password: hashedPassword }
+      );
+
+      // Logout from all devices
+      const [employeeKey] = await this.redisRepository.GetKeys(
+        `employee-ims-${employee.id}`,
+      );
+
+      if (employeeKey) {
+        await this.deleteUserToken(employeeKey);
+      }
+
+      return { message: 'Password reset successful' };
+    } catch (err) {
+      if (err.name === 'JsonWebTokenError') {
+        throw new BadRequestException('Invalid or expired reset token');
+      }
+      throw err;
+    }
+  }
+
+  private async ExpireOTP(email: string) {
+    const keys = await this.redisRepository.GetKeys(
+      `forgot-password-otp-${email}`,
+    );
+    await Promise.all(keys.map(key => this.redisRepository.Delete(key)));
+    return true;
+  }
+
+  private async UpdateOTPInfo(email: string, payload: any) {
+    await this.redisRepository.Set(
+      `forgot-password-otp-info-${email}`,
+      JSON.stringify(payload),
+    );
+    return payload;
+  }
 }

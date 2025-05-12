@@ -16,7 +16,7 @@ export class ContactUsRepository extends BaseRepository<ContactUsModel> {
   }
 
   public async GetContactUsResponses(data: GetContactUsDto) {
-    const query = await this.Repository.createQueryBuilder('contact_us')
+    const query = this.Repository.createQueryBuilder('contact_us')
     .leftJoin('contact_us.company', 'company')
     .where('contact_us.is_deleted = :is_deleted', { is_deleted: 0 })
 
