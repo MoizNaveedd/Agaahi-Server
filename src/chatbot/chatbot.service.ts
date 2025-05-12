@@ -168,7 +168,7 @@ public async SendMessage(
     };
 
     // 5. Make request to chatbot server
-    let chatbotResponse, base64, format;
+    let chatbotResponse, base64_image, format;
     try {
       const response = await axios.post(`${this.fastApiUrl}`, payload);
       
@@ -177,7 +177,7 @@ public async SendMessage(
       }
 
       chatbotResponse = response.data.response;
-      base64 = response.data.base64;
+      base64_image = response.data.base64;
       format = response.data.format;
     } catch (error) {
       console.error('Chatbot server error:', error?.message || error);
@@ -215,7 +215,7 @@ public async SendMessage(
           conversation_id: conversation.id,
           user_prompt: userPrompt.message,
           response: chatbotResponse,
-          image: base64,
+          image: base64_image,
           format: format,
         });
       } catch (backgroundError) {
@@ -227,7 +227,7 @@ public async SendMessage(
     // 7. Return response
     return {
       response: chatbotResponse,
-      base64: base64 ?? null,
+      base64: base64_image ?? null,
       format: format ?? null,
       conversation_id: conversation.id,
     };

@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsNotEmpty, IsString, Matches, Length, MinLength, IsOptional, IsEmail, IsEnum, IsNumber, Max, ValidateIf } from "class-validator";
 import { ToBoolean } from "src/shared/decorators/boolean.decorator";
@@ -81,10 +82,12 @@ export class ValidateAccountDto {
   }
   
   export class GetCompanyDto extends PaginationParam {
+    @ApiProperty({ description: 'search with name', required: false})
     @IsOptional()
     @IsString()
      search?: string;
      
+     @ApiProperty({ description: 'company status filter ', required: false})
      @IsOptional()
      @ToBoolean()
      is_active?: boolean;
