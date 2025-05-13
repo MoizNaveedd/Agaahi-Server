@@ -97,6 +97,68 @@ export class DatabasevalidatorService {
     }
   }
 
+
+
+  async fetchSchemaDetailsv2(
+    connectionDetails: DatabaseConnectionDto,
+  ): Promise<any> {
+    const client = await this.createDatabaseConnection(connectionDetails);
+  
+    try {
+      if (connectionDetails.type === DatabaseType.POSTGRES) {
+        // Fetch tables for PostgreSQL
+        const resTables = await client.query(`
+          SELECT table_name
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+        `);
+  
+        const tables = resTables.rows.map((table) => table.table_name);
+  
+        const schemaDetails = {};
+  
+        for (const table of tables) {
+          const resColumns = await client.query(`
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = '${table}'
+          `);
+  
+          schemaDetails[table] = resColumns.rows; // array of { column_name, data_type }
+        }
+  
+        return schemaDetails;
+  
+      } else if (connectionDetails.type === DatabaseType.MYSQL) {
+        // Fetch tables for MySQL
+        const [tables] = await client.query('SHOW TABLES;');
+  
+        const tableNames = tables.map((table) => Object.values(table)[0]);
+  
+        const schemaDetails = {};
+  
+        for (const table of tableNames) {
+          const [columns] = await client.query(`
+            SELECT COLUMN_NAME, DATA_TYPE
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = '${connectionDetails.database}' AND TABLE_NAME = '${table}'
+          `);
+  
+          schemaDetails[table] = columns; // array of { COLUMN_NAME, DATA_TYPE }
+        }
+  
+        return schemaDetails;
+      }
+  
+    } catch (error) {
+      console.error('Error fetching schema details:', error.message);
+      throw new Error('Failed to fetch schema details');
+    } finally {
+      await client.end();
+    }
+  }
+  
+
   async getSchema(
     connectionDetails: DatabaseConnectionDto,
     // user: IRedisUserModel,
@@ -162,7 +224,7 @@ export class DatabasevalidatorService {
     await this.databaseConnectionRepository.Save(databaseConnection);
   }
 
-  public async GetTables(user: IRedisUserModel) {
+  public async GetTables(user: IRedisUserModel, flag: boolean = false) {
     const DatabaseConnection = await this.databaseConnectionRepository.FindOne({
       company_id: user.company_id,
     })
@@ -171,7 +233,7 @@ export class DatabasevalidatorService {
       throw new BadRequestException('Database connection details not found');
     }
 
-    return await this.fetchSchemaDetails(DatabaseConnection);
+    return flag ? await this.fetchSchemaDetailsv2(DatabaseConnection) : await this.fetchSchemaDetails(DatabaseConnection);
   }
 
   public async GetDBConnectionDetailByCompanyId(user: IRedisUserModel){

@@ -1,13 +1,16 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import { DatabasevalidatorService } from './database-validator.service';
-import { DatabaseConnectionDto } from './database-validator.dto';
+import { DatabaseConnectionDto, EditorDataDto, EditorQueryDto } from './database-validator.dto';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
+import { EditorService } from './editor1.service';
 
 @Controller('database-validator')
 export class DatabaseValidatorController {
-  constructor(private readonly databaseValidatorService: DatabasevalidatorService ) {}
+  constructor(private readonly databaseValidatorService: DatabasevalidatorService,
+    private readonly editorService: EditorService,
+   ) {}
 
   // @Authorized()
   @Post('verify')
@@ -28,5 +31,23 @@ export class DatabaseValidatorController {
   @Get('tables')
   async getTables(@CurrentUser() user: IRedisUserModel) {
     return await this.databaseValidatorService.GetTables(user);
+  }
+
+  @Authorized()
+  @Get('tables-with-columns')
+  async getTablesWithColumns(@CurrentUser() user: IRedisUserModel) {
+    return await this.databaseValidatorService.GetTables(user, true);
+  }
+
+  @Authorized()
+  @Post('editor/sql-query')
+  async GetEditorSQLQuery(@CurrentUser() user: IRedisUserModel, @Body() query: EditorQueryDto) {
+    return await this.editorService.GetEditorSQLQuery(user, query);
+  }
+
+  @Authorized()
+  @Post('editor/data')
+  async GetEditorData(@CurrentUser() user: IRedisUserModel, @Body() query: EditorDataDto) {
+    return await this.editorService.GetEditorData(user, query);
   }
 }

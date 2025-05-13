@@ -7,11 +7,12 @@ import { DatabaseConnectionRepository } from './database-connection.repository';
 import { RoleModule } from 'src/role/role.module';
 import { EmployeeModule } from 'src/employee/employee.module';
 import { SharedModule } from 'src/shared/shared.module';
+import { EditorService } from './editor1.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DatabaseConnectionModel]), RoleModule, EmployeeModule, SharedModule],
   controllers: [DatabaseValidatorController],
-  providers: [DatabasevalidatorService, DatabaseConnectionRepository],
+  providers: [DatabasevalidatorService, DatabaseConnectionRepository, EditorService],
   exports: [DatabasevalidatorService, DatabaseConnectionRepository],
 })
 export class DatabaseValidatorModule {}

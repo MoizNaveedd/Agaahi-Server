@@ -1,5 +1,6 @@
 import { IsEnum, IsInt, IsNotEmpty, IsString, Min, Max, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { PaginationParam } from 'src/shared/dto/Pagination.dto';
 
 export enum DatabaseType {
   POSTGRES = 'postgres',
@@ -41,4 +42,24 @@ export class DatabaseConnectionDto {
   @IsNumber()
   @IsNotEmpty()
   company_id: number;
+}
+
+export class EditorQueryDto {
+  @ApiProperty({ description: 'The prompt for the query to be executed' })
+  @IsString()
+  @IsNotEmpty()
+  question: string;
+}
+
+
+export class EditorDataDto {
+  @ApiProperty({ description: 'The query to be executed' })
+  @IsString()
+  @IsNotEmpty()
+  query: string;
+
+  // @ApiProperty({ description: 'The table name to be executed' })
+  // @IsString()
+  // @IsNotEmpty()
+  // table: string;
 }
