@@ -3,21 +3,56 @@ import { DatabasevalidatorService } from "./database-validator.service";
 import { IRedisUserModel } from "src/shared/interfaces/IRedisUserModel";
 import { appEnv } from "src/shared/helpers/EnvHelper";
 import axios from 'axios';
-import { EditorDataDto, EditorQueryDto } from "./database-validator.dto";
+import { EditorDataDto, EditorQueryDto, GetHistoryDto } from "./database-validator.dto";
 import { RowDataPacket } from "mysql2";
 import * as mysql from 'mysql2/promise';
+import { EditorHistoryModel } from "./entity/editor-history.entity";
+import { EditorHistoryRepository } from "./editor.repository";
 
 @Injectable()
 export class EditorService {
     constructor(
     //   private readonly httpService: HttpService,
+      private readonly editorHistoryRepository: EditorHistoryRepository,
       private readonly databaseValidatorService: DatabasevalidatorService,
     //   private readonly databaseConnectionService: DatabasevalidatorService,
     ){}
 
     public async GetEditorSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
         const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, { question : data.question });
+
+        const editorHistory = new EditorHistoryModel();
+        editorHistory.employee_id = user.employee_id;
+        editorHistory.query = response.data;
+        editorHistory.user_prompt = data.question;
+        editorHistory.response = '';
+
+        await this.editorHistoryRepository.Save(editorHistory);
+
         return response.data;
+    }
+
+    public async GetEditorHistory(user: IRedisUserModel,data: GetHistoryDto){
+        const editorHistory = await this.editorHistoryRepository.GetHistory(user,data);
+        return editorHistory;
+    }
+
+    public async GetEditorDataAndSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
+        const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, { question : data.question });
+
+
+        const connection = await this.getDbConnection(user);
+        const query = response.data;
+        const result = await this.executeDbQuery(connection, query);
+
+        const editorHistory = new EditorHistoryModel();
+        editorHistory.employee_id = user.employee_id;
+        editorHistory.query = response.data;
+        editorHistory.user_prompt = data.question;
+        editorHistory.response = '';
+
+        await this.editorHistoryRepository.Save(editorHistory);
+        return result;
     }
 
     public async getDbConnection(
@@ -70,4 +105,8 @@ export class EditorService {
         const result = await this.executeDbQuery(connection, query);
         return result;
     }
+
+    // public async GetEditorDataV2(user: IRedisUserModel, data: EditorDataDto){
+
+    // }
 }

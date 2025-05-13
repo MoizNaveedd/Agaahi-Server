@@ -51,6 +51,7 @@ export class EditorQueryDto {
   question: string;
 }
 
+export class GetHistoryDto extends PaginationParam {}
 
 export class EditorDataDto {
   @ApiProperty({ description: 'The query to be executed' })

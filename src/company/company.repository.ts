@@ -61,7 +61,7 @@ export class CompanyRepository extends BaseRepository<CompanyModel> {
         'company.created_at',
         'COUNT(DISTINCT employee.id) AS total_employees',
       ])
-      .leftJoin('company.employee', 'employee')
+      .leftJoin('employee', 'employee', 'employee.company_id = company.id')
       .where('company.is_deleted = :is_deleted', { is_deleted: 0 })
       .groupBy('company.id')
       .orderBy('company.created_at', 'DESC');

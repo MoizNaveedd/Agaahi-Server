@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { DatabasevalidatorService } from './database-validator.service';
-import { DatabaseConnectionDto, EditorDataDto, EditorQueryDto } from './database-validator.dto';
+import { DatabaseConnectionDto, EditorDataDto, EditorQueryDto, GetHistoryDto } from './database-validator.dto';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
@@ -49,5 +49,17 @@ export class DatabaseValidatorController {
   @Post('editor/data')
   async GetEditorData(@CurrentUser() user: IRedisUserModel, @Body() query: EditorDataDto) {
     return await this.editorService.GetEditorData(user, query);
+  }
+
+  @Authorized()
+  @Get('editor/history')
+  async GetEditorHistory(@CurrentUser() user: IRedisUserModel, @Query() data: GetHistoryDto) {
+    return await this.editorService.GetEditorHistory(user, data);
+  }
+
+  @Authorized()
+  @Post('editor/data-and-sql-query')
+  async GetEditorDataAndSQLQuery(@CurrentUser() user: IRedisUserModel, @Body() query: EditorQueryDto) {
+    return await this.editorService.GetEditorDataAndSQLQuery(user, query);
   }
 }

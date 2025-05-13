@@ -8,11 +8,13 @@ import { RoleModule } from 'src/role/role.module';
 import { EmployeeModule } from 'src/employee/employee.module';
 import { SharedModule } from 'src/shared/shared.module';
 import { EditorService } from './editor1.service';
+import { EditorHistoryRepository } from './editor.repository';
+import { EditorHistoryModel } from './entity/editor-history.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DatabaseConnectionModel]), RoleModule, EmployeeModule, SharedModule],
+  imports: [TypeOrmModule.forFeature([DatabaseConnectionModel, EditorHistoryModel]), RoleModule, EmployeeModule, SharedModule],
   controllers: [DatabaseValidatorController],
-  providers: [DatabasevalidatorService, DatabaseConnectionRepository, EditorService],
+  providers: [DatabasevalidatorService, DatabaseConnectionRepository, EditorService, EditorHistoryRepository],
   exports: [DatabasevalidatorService, DatabaseConnectionRepository],
 })
 export class DatabaseValidatorModule {}

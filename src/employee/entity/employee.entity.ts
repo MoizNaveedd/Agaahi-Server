@@ -14,6 +14,7 @@ import { CompanyModel } from 'src/company/entity/company.entity';
 import {  ConversationModel } from 'src/chatbot/entity/chatbot-conversations.entity';
 import { DashboardChartsModel } from 'src/dashboard/entity/dashboard.entity';
 import { DashboardLayoutModel } from 'src/dashboard/entity/dashboard-layout.entity';
+import { EditorHistoryModel } from 'src/database-validator/entity/editor-history.entity';
 
 @Entity(`employee`)
 export class EmployeeModel extends PostgresBaseModel {
@@ -153,6 +154,9 @@ export class EmployeeModel extends PostgresBaseModel {
   // })
   // @JoinColumn({ name: 'company_role_id', referencedColumnName: 'id' })
   // company_role: CompanyRoleModel;
+
+  @OneToMany(() => EditorHistoryModel, (editor_history) => editor_history.employee)
+  editor_history: EditorHistoryModel[];
 
   @ManyToOne(() => RoleModel, (role) => role.employee, {
     onDelete: 'CASCADE',
