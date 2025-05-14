@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { DatabasevalidatorService } from "./database-validator.service";
 import { IRedisUserModel } from "src/shared/interfaces/IRedisUserModel";
 import { appEnv } from "src/shared/helpers/EnvHelper";
@@ -8,6 +8,7 @@ import { RowDataPacket } from "mysql2";
 import * as mysql from 'mysql2/promise';
 import { EditorHistoryModel } from "./entity/editor-history.entity";
 import { EditorHistoryRepository } from "./editor.repository";
+import { assertQuerySafety } from "src/shared/helpers/QueryValidator";
 
 @Injectable()
 export class EditorService {
@@ -19,6 +20,13 @@ export class EditorService {
     ){}
 
     public async GetEditorSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
+
+      if (!assertQuerySafety(data.question)) {
+        throw new BadRequestException(
+            'Invalid query detected. This endpoint only allows SELECT operations. ' +
+            'Please remove any INSERT, UPDATE, DELETE, DROP, or other modification operations.'
+        );
+      }
         const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, { question : data.question });
 
         const editorHistory = new EditorHistoryModel();
@@ -38,6 +46,12 @@ export class EditorService {
     }
 
     public async GetEditorDataAndSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
+      if (!assertQuerySafety(data.question)) {
+        throw new BadRequestException(
+            'Invalid query detected. This endpoint only allows SELECT operations. ' +
+            'Please remove any INSERT, UPDATE, DELETE, DROP, or other modification operations.'
+        );
+    }
         const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, { question : data.question });
 
 
@@ -47,6 +61,7 @@ export class EditorService {
 
         const editorHistory = new EditorHistoryModel();
         editorHistory.employee_id = user.employee_id;
+
         editorHistory.query = response.data;
         editorHistory.user_prompt = data.question;
         editorHistory.response = '';

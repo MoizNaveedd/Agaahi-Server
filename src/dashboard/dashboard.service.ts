@@ -231,10 +231,10 @@ export class DashboardService {
 
     // Save the chart data
     const savedChart = await this.dashboardChartsRepository.Save(dashboard);
-
+// 5 or 3
     // Now save the layout for this chart
-    const defaultWidth = 6;
-    const defaultHeight = 4;
+    const defaultWidth = data.chart_id == 11 ? 5 : 6;
+    const defaultHeight = data.chart_id == 11 ? 3 : 4;
     await this.SaveChartLayout(
       savedChart.id,
       user.employee_id,
