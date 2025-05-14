@@ -233,7 +233,8 @@ export class DatabasevalidatorService {
       throw new BadRequestException('Database connection details not found');
     }
 
-    return flag ? await this.fetchSchemaDetailsv2(DatabaseConnection) : await this.fetchSchemaDetails(DatabaseConnection);
+    const result = flag ? await this.fetchSchemaDetailsv2(DatabaseConnection) : await this.fetchSchemaDetails(DatabaseConnection);
+    return flag ? { ...result, db_name: DatabaseConnection.database } : result;
   }
 
   public async GetDBConnectionDetailByCompanyId(user: IRedisUserModel){
