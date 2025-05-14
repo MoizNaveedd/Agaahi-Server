@@ -264,7 +264,7 @@ export class AuthService {
 
     if (employeeKey) {
       // remove previous key from cache
-      await this.deleteUserToken(employeeKey);
+      // await this.deleteUserToken(employeeKey);
     }
 
     const token = this.generateToken(
