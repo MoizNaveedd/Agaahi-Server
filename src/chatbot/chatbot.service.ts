@@ -23,21 +23,18 @@ export class ChatbotService {
     private readonly logger: Logger,
 
   ) {}
-
   public async PublicChat(data: ChatPublicBotDto) {
     let chatbotResponse: string;
     let base64: string;
     let format: string;
     try {
-      // console.log(`${this.fastApiUrl}`, payload)
       const response = await axios.post(`${appEnv('CHAT_BOT_URL')}knowledge-base/query`, { question: data.message});
-      console.log(response.data.response); // Optional debug log
+      
       if (!response?.data?.response) {
-        throw new Error('Invalid response from chatbot server');
+        throw new BadRequestException('Invalid response received from chatbot server');
       }
 
-
-      chatbotResponse = response.data.response; // Assuming the structure is: { response: "..." }
+      chatbotResponse = response.data.response;
       base64 = response.data.base64;
       format = response.data.format;
 
@@ -47,10 +44,28 @@ export class ChatbotService {
         format: format ?? null,
       };
     } catch (error) {
-      throw new BadRequestException('Failed to communicate with chatbot server');
+      // Log the error for debugging
+      console.error('PublicChat error:', error?.message || error);
+
+      // Handle axios specific errors
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+          throw new BadRequestException('Chatbot server is currently unavailable. Please try again later.');
+        }
+        if (error.response?.status) {
+          throw new BadRequestException(error.response.data?.message || 'Invalid request to chatbot server');
+        }
+      }
+
+      // If it's already a BadRequestException, rethrow it
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      // For all other errors, return a BadRequestException
+      throw new BadRequestException('An error occurred while processing your request. Please try again.');
     }
   }
-
   async checkChatbotConnection(): Promise<void> {
     try {
       const response = await axios.get(appEnv('CHAT_BOT_URL'));
@@ -151,29 +166,29 @@ public async SendMessage(
       throw new BadRequestException(`Failed to fetch role details or conversation: ${error.message}`);
     }
 
-    // 3. Validate role and permissions
+    // Validate role and permissions
     if (!employeeRole) {
-      throw new UnauthorizedException('Role not found');
+      throw new BadRequestException('Role not found');
     }
 
     if (!employeeRole?.table_permission || employeeRole?.table_permission?.length === 0) {
-      throw new ForbiddenException('Role has no table permissions configured');
+      throw new BadRequestException('Role has no table permissions configured');
     }
 
-    // 4. Prepare payload for chatbot
+    // Prepare payload for chatbot
     const payload = {
       user_prompt: userPrompt.message,
       role: employeeRole.role.name.toLowerCase(),
       allowed_tables: employeeRole.table_permission,
     };
 
-    // 5. Make request to chatbot server
+    // Make request to chatbot server
     let chatbotResponse, base64_image, format;
     try {
       const response = await axios.post(`${this.fastApiUrl}`, payload);
       
       if (!response?.data?.response) {
-        throw new Error('Invalid response structure from chatbot server');
+        throw new BadRequestException('Invalid response structure from chatbot server');
       }
 
       chatbotResponse = response.data.response;
@@ -181,12 +196,12 @@ public async SendMessage(
       format = response.data.format;
     } catch (error) {
       console.error('Chatbot server error:', error?.message || error);
-      throw new ServiceUnavailableException(
-        'Failed to communicate with chatbot server: ' + (error?.message || 'Unknown error')
+      throw new BadRequestException(
+        'Failed to communicate with chatbot server. Please try again later.'
       );
     }
 
-    // 6. Handle background tasks
+    // Handle background tasks
     setImmediate(async () => {
       try {
         // Handle conversation naming for new conversations
@@ -224,7 +239,7 @@ public async SendMessage(
       }
     });
 
-    // 7. Return response
+    // Return response
     return {
       response: chatbotResponse,
       base64: base64_image ?? null,
@@ -233,21 +248,144 @@ public async SendMessage(
     };
 
   } catch (error) {
-    // Handle specific error types
-    if (error instanceof UnauthorizedException || 
-        error instanceof ForbiddenException || 
-        error instanceof BadRequestException ||
-        error instanceof ServiceUnavailableException) {
+    // Log all errors
+    console.error('Error in SendMessage:', error);
+
+    // If it's already a BadRequestException, rethrow it
+    if (error instanceof BadRequestException) {
       throw error;
     }
 
-    // Log unexpected errors
-    console.error('Unexpected error in SendMessage:', error);
-    throw new InternalServerErrorException(
-      'An unexpected error occurred while processing your request'
-    );
+    // Convert all other errors to BadRequestException with appropriate messages
+    if (error instanceof UnauthorizedException) {
+      throw new BadRequestException('Authentication failed. Please check your credentials.');
+    }
+    if (error instanceof ForbiddenException) {
+      throw new BadRequestException('You do not have permission to perform this action.');
+    }
+    if (error instanceof ServiceUnavailableException) {
+      throw new BadRequestException('Service is temporarily unavailable. Please try again later.');
+    }
+
+    // For any other unexpected errors
+    throw new BadRequestException('An error occurred while processing your request. Please try again.');
   }
 }
+
+
+
+// public async SendMessage(
+//   userPrompt: ChatBotDto,
+//   user: IRedisUserModel,
+// ) {
+//   try {
+//     let employeeRole, conversation;
+//     try {
+//       [employeeRole, conversation] = await Promise.all([
+//         this.roleService.GetCompanyRoleDetails(user.role_id, user.company_id),
+//         this.getOrCreateConversationv2(userPrompt, user),
+//       ]);
+//     } catch (error) {
+//       throw new BadRequestException(`Failed to fetch role details or conversation: ${error.message}`);
+//     }
+
+//     // 3. Validate role and permissions
+//     if (!employeeRole) {
+//       throw new UnauthorizedException('Role not found');
+//     }
+
+//     if (!employeeRole?.table_permission || employeeRole?.table_permission?.length === 0) {
+//       throw new ForbiddenException('Role has no table permissions configured');
+//     }
+
+//     // 4. Prepare payload for chatbot
+//     const payload = {
+//       user_prompt: userPrompt.message,
+//       role: employeeRole.role.name.toLowerCase(),
+//       allowed_tables: employeeRole.table_permission,
+//     };
+
+//     // 5. Make request to chatbot server
+//     let chatbotResponse, base64_image, format;
+//     try {
+//       const response = await axios.post(`${this.fastApiUrl}`, payload);
+      
+//       if (!response?.data?.response) {
+//         throw new Error('Invalid response structure from chatbot server');
+//       }
+
+//       chatbotResponse = response.data.response;
+//       base64_image = response.data.base64;
+//       format = response.data.format;
+//     } catch (error) {
+//       console.error('Chatbot server error:', error?.message || error);
+//       throw new ServiceUnavailableException(
+//         'Failed to communicate with chatbot server: ' + (error?.message || 'Unknown error')
+//       );
+//     }
+
+//     // 6. Handle background tasks
+//     setImmediate(async () => {
+//       try {
+//         // Handle conversation naming for new conversations
+//         if (conversation?.chat_history?.length === 0 || userPrompt.is_new) {
+//           try {
+//             const nameResponse = await firstValueFrom(
+//               this.httpService.post(`${appEnv('CHAT_BOT_URL')}conversation-name`, {
+//                 user_prompt: userPrompt.message,
+//               }),
+//             );
+
+//             if (nameResponse?.data?.conversation_name) {
+//               await this.UpdateCoversationById(
+//                 conversation.id, 
+//                 { name: nameResponse.data.conversation_name } as RenameConversation
+//               );
+//             }
+//           } catch (nameError) {
+//             console.error('Failed to set conversation name:', nameError);
+//             // Don't throw here as this is a background task
+//           }
+//         }
+
+//         // Save chat history
+//         await this.chatHistoryRepository.SaveChatHistory({
+//           conversation_id: conversation.id,
+//           user_prompt: userPrompt.message,
+//           response: chatbotResponse,
+//           image: base64_image,
+//           format: format,
+//         });
+//       } catch (backgroundError) {
+//         console.error('Background task error:', backgroundError);
+//         // Don't throw here as these are background operations
+//       }
+//     });
+
+//     // 7. Return response
+//     return {
+//       response: chatbotResponse,
+//       base64: base64_image ?? null,
+//       format: format ?? null,
+//       conversation_id: conversation.id,
+//     };
+
+//   } catch (error) {
+//     // Handle specific error types
+//     if (error instanceof UnauthorizedException || 
+//         error instanceof ForbiddenException || 
+//         error instanceof BadRequestException ||
+//         error instanceof ServiceUnavailableException) {
+//       throw error;
+//     }
+
+//     // Log unexpected errors
+//     console.error('Unexpected error in SendMessage:', error);
+//     throw new InternalServerErrorException(
+//       'An unexpected error occurred while processing your request'
+//     );
+//   }
+// }
 
 // public async SendMessage(
 //   userPrompt: ChatBotDto,

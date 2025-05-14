@@ -97,7 +97,6 @@ export class DashboardService {
         apiResponse.column_mapping.x_axis || '',
         apiResponse.column_mapping.y_axis || [],
         apiResponse.sql_query,
-
         {
           chartId: data.chart_id,
           title: apiResponse.chart_title,
@@ -108,7 +107,16 @@ export class DashboardService {
       return formattedResponse;
     } catch (error) {
       console.error('Error generating chart data:', error);
-      throw new Error('Failed to generate chart data');
+      
+      // If it's already a BadRequestException, rethrow it
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      // For all other errors, throw a BadRequestException with a user-friendly message
+      throw new BadRequestException(
+        'An error occurred while generating the chart. Please try again later.'
+      );
     }
   }
 
@@ -130,15 +138,32 @@ export class DashboardService {
     chartId: number,
     role: string,
   ): Promise<ChartAnalysisResponse> {
-    const apiUrl = `${appEnv('CHAT_BOT_URL')}dashboard`;
-    const response = await firstValueFrom(
-      this.httpService.post(apiUrl, {
-        user_prompt: userPrompt,
-        chart_id: +chartId,
-        role: role,
-      }),
-    );
-    return response.data;
+    try {
+      const apiUrl = `${appEnv('CHAT_BOT_URL')}dashboard`;
+      const response = await firstValueFrom(
+        this.httpService.post(apiUrl, {
+          user_prompt: userPrompt,
+          chart_id: +chartId,
+          role: role,
+        }),
+      );
+
+      if (!response?.data) {
+        throw new BadRequestException('Invalid response from dashboard service');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Dashboard API error:', error?.message || error);
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new BadRequestException(
+        'Failed to process dashboard request. Please try again later.'
+      );
+    }
   }
 
   private async getDbConnection(
@@ -180,7 +205,7 @@ export class DashboardService {
       return rows;
     } catch (error) {
       console.error('Database query error:', error);
-      throw new Error(`Database query failed: ${error.message}`);
+      throw new BadRequestException(`Database query failed: ${error.message}`);
     }
   }
 
@@ -350,7 +375,7 @@ export class DashboardService {
       return layouts;
     } catch (err) {
       console.error('Error while getting dashboard data:', err);
-      throw err;
+      throw new BadRequestException('Error while getting dashboard data');
     } finally {
       await connection.end();
     }
