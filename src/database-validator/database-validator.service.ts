@@ -237,6 +237,40 @@ export class DatabasevalidatorService {
     return flag ? { ...result, db_name: DatabaseConnection.database } : result;
   }
 
+  public async GetTablesV2(user: IRedisUserModel, flag: boolean = false) {
+    const DatabaseConnection = await this.databaseConnectionRepository.FindOne({
+      company_id: user.company_id,
+    });
+  
+    if (!DatabaseConnection) {
+      throw new BadRequestException('Database connection details not found');
+    }
+  
+    const companyRole = await this.companyRoleRepository.FindOne({
+      company_id: user.company_id,
+      role_id: user.role_id,
+    });
+  
+    if (!companyRole || !Array.isArray(companyRole.table_permission)) {
+      throw new BadRequestException('No table permissions defined for this role');
+    }
+  
+    const fullSchema = await this.fetchSchemaDetailsv2(DatabaseConnection);
+  
+    // Filter only the tables the user has permission to access
+    const filteredSchema = Object.keys(fullSchema)
+      .filter((tableName) => companyRole.table_permission.includes(tableName))
+      .reduce((acc, tableName) => {
+        acc[tableName] = fullSchema[tableName];
+        return acc;
+      }, {});
+  
+    return flag
+      ? { ...filteredSchema, db_name: DatabaseConnection.database }
+      : filteredSchema;
+  }
+  
+
   public async GetDBConnectionDetailByCompanyId(user: IRedisUserModel){
     const DatabaseConnection = await this.databaseConnectionRepository.FindOne({
       company_id: user.company_id,

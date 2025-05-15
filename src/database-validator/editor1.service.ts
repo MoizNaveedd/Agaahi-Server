@@ -9,17 +9,43 @@ import * as mysql from 'mysql2/promise';
 import { EditorHistoryModel } from "./entity/editor-history.entity";
 import { EditorHistoryRepository } from "./editor.repository";
 import { assertQuerySafety } from "src/shared/helpers/QueryValidator";
-
+import { RoleService } from "src/role/role.service";
 @Injectable()
 export class EditorService {
     constructor(
     //   private readonly httpService: HttpService,
       private readonly editorHistoryRepository: EditorHistoryRepository,
+      private readonly roleService: RoleService,
       private readonly databaseValidatorService: DatabasevalidatorService,
     //   private readonly databaseConnectionService: DatabasevalidatorService,
     ){}
 
     public async GetEditorSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
+      let employeeRole;
+      try {
+        [employeeRole] = await Promise.all([
+          this.roleService.GetCompanyRoleDetails(user.role_id, user.company_id),
+        ]);
+      } catch (error) {
+        throw new BadRequestException(`Failed to fetch role details or conversation: ${error.message}`);
+      }
+  
+      // Validate role and permissions
+      if (!employeeRole) {
+        throw new BadRequestException('Role not found');
+      }
+  
+      if (!employeeRole?.table_permission || employeeRole?.table_permission?.length === 0) {
+        throw new BadRequestException('Role has no table permissions configured');
+      }
+  
+      // Prepare payload for chatbot
+      const payload = {
+        question: data.question,
+        role: employeeRole.role.name.toLowerCase(),
+        allowed_tables: employeeRole.table_permission,
+      };
+      
       const isSafe = assertQuerySafety(data.question);
       if (!isSafe) {
         throw new BadRequestException(
@@ -27,7 +53,11 @@ export class EditorService {
             'Please remove any INSERT, UPDATE, DELETE, DROP, or other modification operations.'
         );
       }
-        const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, { question : data.question });
+        const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, payload);
+
+        if(response?.data.format == 'html'){
+          throw new BadRequestException("Access Denied!! You Don't have a permission to view such data, If you believe this is an error or require access to these resources, please contact your administrator or review your assigned role’s permissions.")
+        }
 
         const editorHistory = new EditorHistoryModel();
         editorHistory.employee_id = user.employee_id;
@@ -46,16 +76,43 @@ export class EditorService {
     }
 
     public async GetEditorDataAndSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
-      const isSafe = assertQuerySafety(data.question);
-      if (!isSafe) {
-        throw new BadRequestException(
+      let employeeRole;
+      try {
+        [employeeRole] = await Promise.all([
+          this.roleService.GetCompanyRoleDetails(user.role_id, user.company_id),
+        ]);
+      } catch (error) {
+        throw new BadRequestException(`Failed to fetch role details or conversation: ${error.message}`);
+      }
+  
+      // Validate role and permissions
+      if (!employeeRole) {
+        throw new BadRequestException('Role not found');
+      }
+  
+      if (!employeeRole?.table_permission || employeeRole?.table_permission?.length === 0) {
+        throw new BadRequestException('Role has no table permissions configured');
+      }
+  
+      // Prepare payload for chatbot
+      const payload = {
+        question: data.question,
+        role: employeeRole.role.name.toLowerCase(),
+        allowed_tables: employeeRole.table_permission,
+      };
+        
+        const isSafe = assertQuerySafety(data.question);
+        if (!isSafe) {
+          throw new BadRequestException(
             'Invalid query detected. This endpoint only allows SELECT operations. ' +
             'Please remove any INSERT, UPDATE, DELETE, DROP, or other modification operations.'
-        );
-    }
-        const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, { question : data.question });
+          );
+        }
+        const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, payload);
 
-
+        if(response?.data.format == 'html'){
+          throw new BadRequestException("Access Denied!! You Don't have a permission to view such data, If you believe this is an error or require access to these resources, please contact your administrator or review your assigned role’s permissions.")
+        }
         const connection = await this.getDbConnection(user);
         const query = response.data;
         const result = await this.executeDbQuery(connection, query);
@@ -116,6 +173,43 @@ export class EditorService {
     
 
     public async GetEditorData(user: IRedisUserModel, data: EditorDataDto){
+            let employeeRole;
+      try {
+        [employeeRole] = await Promise.all([
+          this.roleService.GetCompanyRoleDetails(user.role_id, user.company_id),
+        ]);
+      } catch (error) {
+        throw new BadRequestException(`Failed to fetch role details or conversation: ${error.message}`);
+      }
+  
+      // Validate role and permissions
+      if (!employeeRole) {
+        throw new BadRequestException('Role not found');
+      }
+  
+      if (!employeeRole?.table_permission || employeeRole?.table_permission?.length === 0) {
+        throw new BadRequestException('Role has no table permissions configured');
+      }
+  
+      // Prepare payload for chatbot
+      const payload = {
+        question: data.query,
+        role: employeeRole.role.name.toLowerCase(),
+        allowed_tables: employeeRole.table_permission,
+      };
+      
+      const isSafe = assertQuerySafety(data.query);
+      if (!isSafe) {
+        throw new BadRequestException(
+            'Invalid query detected. This endpoint only allows SELECT operations. ' +
+            'Please remove any INSERT, UPDATE, DELETE, DROP, or other modification operations.'
+        );
+      }
+        const response = await axios.post(`${appEnv('CHAT_BOT_URL')}editor/query`, payload);
+
+        if(response?.data.format == 'html'){
+          throw new BadRequestException("Access Denied!! You Don't have a permission to view such data, If you believe this is an error or require access to these resources, please contact your administrator or review your assigned role’s permissions.")
+        }
         const connection = await this.getDbConnection(user);
         const query = data.query;
         const result = await this.executeDbQuery(connection, query);

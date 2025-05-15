@@ -36,7 +36,7 @@ export class DatabaseValidatorController {
   @Authorized()
   @Get('tables-with-columns')
   async getTablesWithColumns(@CurrentUser() user: IRedisUserModel) {
-    return await this.databaseValidatorService.GetTables(user, true);
+    return await this.databaseValidatorService.GetTablesV2(user, true);
   }
 
   @Authorized()
