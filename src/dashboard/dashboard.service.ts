@@ -15,6 +15,8 @@ import {
   ChartAnalysisResponse,
   // ChartSaveDto,
   CreateDashboardChartDto,
+  dashboardDTo,
+  DashboardShareDto,
   LayoutArrayDto,
 } from './dashboard.dto';
 import { appEnv } from 'src/shared/helpers/EnvHelper';
@@ -23,6 +25,9 @@ import { DashboardChartsModel } from './entity/dashboard.entity';
 import { DashboardChartsRepository } from './dashboard.repository';
 import { DashboardlayoutRepository } from './entity/dashboard-layout.repository';
 import { DashboardLayoutModel } from './entity/dashboard-layout.entity';
+import { DashboardShareModel } from './entity/dashboard-share.entity';
+import { DashboardSharedRepository } from './dashboard-share.repository';
+import { EmployeeRepository } from 'src/employee/repository/employee.repository';
 
 interface ChartSaveDto {
   chart_id: number;
@@ -53,6 +58,8 @@ export class DashboardService {
     private readonly roleService: RoleService,
     private readonly dashboardChartsRepository: DashboardChartsRepository,
     private readonly dashboardLayoutRepository: DashboardlayoutRepository,
+    private readonly dashboardShareRepository: DashboardSharedRepository,
+    private readonly employeeRepository: EmployeeRepository,
   ) {}
 
   public async GenerateChartData(
@@ -341,8 +348,29 @@ export class DashboardService {
     return layouts;
   }
 
-  public async GetDashboardDataForEmployee(user: IRedisUserModel) {
-    const layouts = await this.dashboardLayoutRepository.GetLayoutByEmployeeId(user.employee_id);
+  public async DashboardShare(data: DashboardShareDto, user: IRedisUserModel) {
+    const employee = await this.employeeRepository.FindOne({id: data.shared_with , company_id: user.company_id, role_id: user.role_id})
+
+    if(!employee){
+      throw new BadRequestException('Employee not found');
+    }
+
+    const dashboardShare = new DashboardShareModel();
+    dashboardShare.dashboard_owner_id = user.employee_id;
+    dashboardShare.shared_with = data.shared_with;
+
+    return await this.dashboardShareRepository.Save(dashboardShare);
+  }
+
+  public async GetEmployeeDashboardShareWithMe(user: IRedisUserModel) {
+    const dashboardShare = await this.dashboardShareRepository.Find({shared_with: user.employee_id}, null, ['employee'])
+
+    return dashboardShare;
+  }
+
+  public async GetDashboardDataForEmployee(user: IRedisUserModel, data: dashboardDTo) {
+    
+    const layouts = await this.dashboardLayoutRepository.GetLayoutByEmployeeId(data.dashboard_owner_id ?? user.employee_id);
     const connection = await this.getDbConnection(user);
   
     try {

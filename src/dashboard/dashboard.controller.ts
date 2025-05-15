@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { Authorized } from 'src/shared/decorators/authorized.decorator';
-import { ChartSaveDto, CreateDashboardChartDto, LayoutArrayDto, LayoutDto } from './dashboard.dto';
+import { ChartSaveDto, CreateDashboardChartDto, dashboardDTo, DashboardShareDto, LayoutArrayDto, LayoutDto } from './dashboard.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { IRedisUserModel } from 'src/shared/interfaces/IRedisUserModel';
 
@@ -32,14 +32,14 @@ export class DashboardController {
 
   @Authorized()
   @Get('/dashboard-layout')
-  async GetMyLayout(@CurrentUser() user: IRedisUserModel,) {
-    return this.dashboardService.getLayoutsForEmployee(user.employee_id);
+  async GetMyLayout(@CurrentUser() user: IRedisUserModel, @Query() data: dashboardDTo) {
+    return this.dashboardService.getLayoutsForEmployee(data.dashboard_owner_id ?? user.employee_id);
   }
 
   @Authorized()
   @Get('/dashboard-data')
-  async GetDashboardData(@CurrentUser() user: IRedisUserModel,) {
-    return this.dashboardService.GetDashboardDataForEmployee(user);
+  async GetDashboardData(@CurrentUser() user: IRedisUserModel, @Query() data: dashboardDTo) {
+    return this.dashboardService.GetDashboardDataForEmployee(user, data);
   }
 
   @Authorized()
@@ -59,6 +59,21 @@ export class DashboardController {
   ) {
     await this.dashboardService.DeleteChart(layoutId,user.employee_id);
     return { success: true };
+  }
+
+  @Authorized()
+  @Post('/dashboard-share')
+  async DashboardShare(
+    @CurrentUser() user: IRedisUserModel,
+    @Body() data: DashboardShareDto,
+  ) {
+    return await this.dashboardService.DashboardShare(data, user);
+  }
+
+  @Authorized()
+  @Get('/employees-shared-with-me')
+  async GetEmployeeDashboardShareWithMe(@CurrentUser() user: IRedisUserModel) {
+    return await this.dashboardService.GetEmployeeDashboardShareWithMe(user);
   }
 
   // @Authorized()

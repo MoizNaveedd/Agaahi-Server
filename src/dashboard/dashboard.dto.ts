@@ -137,3 +137,17 @@ export interface ChartAnalysisResponse {
   chart_title: string;
   description: string;
 }
+
+export class DashboardShareDto {
+  @ApiProperty({ description: 'Dashboard share with ID', example: 1 })
+  @IsNotEmpty()
+  @IsNumber()
+  shared_with: number;
+}
+
+export class dashboardDTo {
+  @ApiProperty({ description: 'dashboard_owner_id ', example: 35 ,required: false})
+  @IsOptional()
+  @IsNumber()
+  dashboard_owner_id?: number;
+}

@@ -15,6 +15,7 @@ import {  ConversationModel } from 'src/chatbot/entity/chatbot-conversations.ent
 import { DashboardChartsModel } from 'src/dashboard/entity/dashboard.entity';
 import { DashboardLayoutModel } from 'src/dashboard/entity/dashboard-layout.entity';
 import { EditorHistoryModel } from 'src/database-validator/entity/editor-history.entity';
+import { DashboardShareModel } from 'src/dashboard/entity/dashboard-share.entity';
 
 @Entity(`employee`)
 export class EmployeeModel extends PostgresBaseModel {
@@ -179,4 +180,9 @@ export class EmployeeModel extends PostgresBaseModel {
   @OneToMany(() => DashboardLayoutModel, (dashboard) => dashboard.employee)
   dashboard_layout: DashboardLayoutModel[];
 
+  @OneToMany(() => DashboardShareModel, (dashboard) => dashboard.employee)
+  dashboard_share: DashboardShareModel[];
+
+  @OneToMany(() => DashboardShareModel, (dashboard) => dashboard.shared_with_employee)
+  shared_with: DashboardShareModel[];
 }
