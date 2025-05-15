@@ -20,8 +20,8 @@ export class EditorService {
     ){}
 
     public async GetEditorSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
-
-      if (!assertQuerySafety(data.question)) {
+      const isSafe = assertQuerySafety(data.question);
+      if (!isSafe) {
         throw new BadRequestException(
             'Invalid query detected. This endpoint only allows SELECT operations. ' +
             'Please remove any INSERT, UPDATE, DELETE, DROP, or other modification operations.'
@@ -46,7 +46,8 @@ export class EditorService {
     }
 
     public async GetEditorDataAndSQLQuery(user: IRedisUserModel, data: EditorQueryDto){
-      if (!assertQuerySafety(data.question)) {
+      const isSafe = assertQuerySafety(data.question);
+      if (!isSafe) {
         throw new BadRequestException(
             'Invalid query detected. This endpoint only allows SELECT operations. ' +
             'Please remove any INSERT, UPDATE, DELETE, DROP, or other modification operations.'

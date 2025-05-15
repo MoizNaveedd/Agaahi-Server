@@ -53,9 +53,9 @@ export function validateQuerySafety(query: string): {
  */
 export function assertQuerySafety(query: string): boolean {
   const { isSafe, foundKeywords } = validateQuerySafety(query);
-  
-  if (!isSafe) {
-    console.log(foundKeywords); 
-    return true;
-  }
+  return isSafe;
+  // if (!isSafe) {
+  //   console.log(foundKeywords); 
+  //   return true;
+  // }
 } 
