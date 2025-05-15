@@ -349,7 +349,7 @@ export class DashboardService {
   }
 
   public async DashboardShare(data: DashboardShareDto, user: IRedisUserModel) {
-    const employee = await this.employeeRepository.FindOne({id: data.shared_with , company_id: user.company_id, role_id: user.role_id})
+    const employee = await this.employeeRepository.FindOne({id: data.shared_with , company_id: user.company_id})
 
     if(!employee){
       throw new BadRequestException('Employee not found');
